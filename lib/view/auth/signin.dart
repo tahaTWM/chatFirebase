@@ -1,35 +1,35 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, deprecated_member_use
+// ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, deprecated_member_use, avoid_print
 
+import 'package:chat_app/view/chat_view/conversionScreen.dart';
+
+import '../../api/authFunctions.dart';
 import 'package:flutter/material.dart';
 
-class SignUp extends StatefulWidget {
+import 'forgetPassword.dart';
+import 'signUp.dart';
+
+class SiginScreen extends StatefulWidget {
   @override
-  _SignUpState createState() => _SignUpState();
+  _SiginScreenState createState() => _SiginScreenState();
 }
 
-class _SignUpState extends State<SignUp> {
+class _SiginScreenState extends State<SiginScreen> {
+  TextEditingController emailController = TextEditingController();
+  TextEditingController passwordController = TextEditingController();
+  Api api = Api();
   @override
   Widget build(BuildContext context) {
-    TextEditingController fullNameController = TextEditingController();
-    TextEditingController emailController = TextEditingController();
-    TextEditingController passwordController = TextEditingController();
     return Scaffold(
       backgroundColor: Color.fromRGBO(54, 57, 63, 1),
       appBar: AppBar(
-        title: Text("Create New account"),
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
+        title: Text("Sign In Your account"),
       ),
       body: Container(
         padding: EdgeInsets.all(25),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextFormField(
-              controller: fullNameController,
-              decoration: textFieldInputDecoration("Full Name"),
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 20),
             TextFormField(
               controller: emailController,
               decoration: textFieldInputDecoration("Email"),
@@ -40,20 +40,35 @@ class _SignUpState extends State<SignUp> {
               controller: passwordController,
               decoration: textFieldInputDecoration("Password"),
               style: TextStyle(color: Colors.white),
+              obscureText: true,
             ),
             SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  InkWell(
+                      onTap: () => forgetPassword(),
+                      child: Text(
+                        "Forget Password?",
+                        style: TextStyle(color: Colors.white),
+                      ))
+                ],
+              ),
+            ),
             Column(
               children: [
                 RaisedButton(
-                  onPressed: () {},
-                  child: Text("sign Up"),
+                  onPressed: () => signIn(),
+                  child: Text("Sigin In"),
                   padding: EdgeInsets.symmetric(horizontal: 95, vertical: 15),
                   shape: rectangleBorder(),
                 ),
                 SizedBox(height: 10),
                 RaisedButton(
-                  onPressed: () {},
-                  child: Text("Sign Up With Google"),
+                  onPressed: () => signInWithGoogle(),
+                  child: Text("Sign In With Google"),
                   shape: rectangleBorder(),
                   padding: EdgeInsets.symmetric(horizontal: 60, vertical: 15),
                 ),
@@ -65,13 +80,13 @@ class _SignUpState extends State<SignUp> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    "Alread have account? ",
+                    "Don't have account? ",
                     style: TextStyle(color: Colors.white),
                   ),
                   InkWell(
-                    onTap: () => sign(),
+                    onTap: () => registerNow(),
                     child: Text(
-                      "Sign Up",
+                      "Register Now",
                       style: TextStyle(
                           color: Colors.white,
                           decoration: TextDecoration.underline),
@@ -101,11 +116,17 @@ class _SignUpState extends State<SignUp> {
         borderRadius: new BorderRadius.circular(30),
       );
 
-  sign() => Navigator.pop(context);
+  signIn() => api.singIn(emailController.text, passwordController.text).then(
+      (value) => value
+          ? Navigator.push(context,
+              MaterialPageRoute(builder: (context) => ConversionScreen()))
+          : print("login error"));
 
-  signWithGoogle() {}
+  signInWithGoogle() => api.signInWithGoogle(context);
 
-  forgetPassword() {}
+  forgetPassword() => Navigator.push(
+      context, MaterialPageRoute(builder: (context) => ForgetPassword()));
 
-  registerNow() {}
+  registerNow() => Navigator.push(
+      context, MaterialPageRoute(builder: (context) => SignUp()));
 }
