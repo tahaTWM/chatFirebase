@@ -9,7 +9,7 @@ environment:
   sdk: ">=2.11.0 <3.0.0"
 
 dependencies:
-  cloud_firestore: null
+  cloud_firestore: 
   cupertino_icons: null
   firebase_analytics: null
   firebase_auth: null
@@ -18,12 +18,13 @@ dependencies:
   firebase_storage: null
   flutter:
     sdk: flutter
-  shared_preferences: ^2.0.8
-  google_sign_in: 4.4.3
+  google_sign_in: null
+  image_picker: null
+  intl: null
+  shared_preferences: null
 
 dev_dependencies:
-
-  flutter_lints: ^1.0.0
+  flutter_lints: null
   flutter_test:
     sdk: flutter
 

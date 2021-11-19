@@ -15,8 +15,8 @@ class Api {
     try {
       final result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
-
       await pref.setString("uid", result.user.uid);
+      await pref.setString("username", result.user.displayName);
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -31,35 +31,37 @@ class Api {
   }
 
   signInWithGoogle(BuildContext context) async {
-    final GoogleSignIn _googleSignIn = GoogleSignIn();
+    try {
+      final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-    final GoogleSignInAccount googleSignInAccount =
-        await _googleSignIn.signIn();
-    final GoogleSignInAuthentication googleSignInAuthentication =
-        await googleSignInAccount.authentication;
+      final GoogleSignInAccount googleSignInAccount =
+          await _googleSignIn.signIn();
 
-    final AuthCredential credential = GoogleAuthProvider.credential(
-        idToken: googleSignInAuthentication.idToken,
-        accessToken: googleSignInAuthentication.accessToken);
+      final GoogleSignInAuthentication googleSignInAuthentication =
+          await googleSignInAccount.authentication;
 
-    final result = await _auth.signInWithCredential(credential);
+      final AuthCredential credential = GoogleAuthProvider.credential(
+          idToken: googleSignInAuthentication.idToken,
+          accessToken: googleSignInAuthentication.accessToken);
 
-    if (result == null) {
-      print('result is null');
-    } else {
-      Navigator.push(
-          context, MaterialPageRoute(builder: (context) => ConversionScreen()));
+      final result = await _auth.signInWithCredential(credential);
+
+      if (result == null) {
+        print('result is null');
+      } else {
+        Navigator.push(context,
+            MaterialPageRoute(builder: (context) => ConversionScreen()));
+      }
+    } catch (e) {
+      print(e.toString());
     }
   }
 
   Future<bool> singUp(String fullname, String email, String password) async {
-    print(fullname);
-    print(email);
-    print(password);
-
     try {
       final result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
+      await _auth.currentUser.updateDisplayName(fullname);
       if (result != null) return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {

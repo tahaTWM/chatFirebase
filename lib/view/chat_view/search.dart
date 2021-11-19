@@ -3,6 +3,8 @@
 import 'package:chat_app/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Search extends StatefulWidget {
   @override
@@ -33,20 +35,21 @@ class _SearchState extends State<Search> {
             TextFormField(
               controller: searchController,
               decoration: InputDecoration(
-                hintText: "Search For Member",
+                hintText: " Search For Member",
                 hintStyle: TextStyle(color: Colors.white54),
                 focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
                 enabledBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
               ),
-              style: TextStyle(color: Colors.white),
+              style: TextStyle(color: Colors.white, fontSize: 22),
               // onChanged: (value) {
               //   setState(() {
               //     searchMethod();
               //   });
               // },
               onFieldSubmitted: (value) => searchMethod(),
+              cursorColor: Colors.white,
             ),
             Expanded(
               child: querySnapshot == null
@@ -83,6 +86,7 @@ class _SearchState extends State<Search> {
         itemBuilder: (BuildContext context, int index) {
           final data = querySnapshot.docs[index].data() as Map;
           return ListTile(
+            contentPadding: EdgeInsets.zero,
             title: Text(
               data["name"],
               style: TextStyle(color: Colors.white),
@@ -92,8 +96,28 @@ class _SearchState extends State<Search> {
               style: TextStyle(color: Colors.white),
             ),
             trailing: RaisedButton(
-              onPressed: () {
-                // dataBase.createChatRoom(charRoomId, chatRoomMap)
+              onPressed: () async {
+                List users = [];
+                var time = DateFormat('MMM d, yyyy');
+                var day = DateFormat('EEEE, hh:mm a');
+
+                String timeNow = time.format(DateTime.now()).toString();
+                String dayNow = day.format(DateTime.now()).toString();
+
+                SharedPreferences pref = await SharedPreferences.getInstance();
+                users.add(pref.getString("username"));
+                users.add(data["name"]);
+
+                final charRoomId =
+                    "${pref.getString("username")}-${data["name"]}";
+
+                Map<String, dynamic> chatRoomMap = {
+                  "chatRoomCreateDate": "$timeNow-$dayNow",
+                  "charRoomId": charRoomId,
+                  "users": users
+                };
+
+                dataBase.createChatRoom(charRoomId, chatRoomMap);
               },
               child: Text("Message", style: TextStyle(color: Colors.white)),
               shape: RoundedRectangleBorder(

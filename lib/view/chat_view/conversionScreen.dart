@@ -1,11 +1,9 @@
 // ignore_for_file: file_names, prefer_const_constructors, avoid_print, deprecated_member_use
 
-import 'package:chat_app/api/databaseFunctions.dart';
+import './/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-
 import '../../api/authFunctions.dart';
 import 'package:flutter/material.dart';
-
 import 'search.dart';
 
 class ConversionScreen extends StatefulWidget {
@@ -75,15 +73,40 @@ class _ConversionScreenState extends State<ConversionScreen> {
         padding: EdgeInsets.symmetric(vertical: 10),
         itemBuilder: (BuildContext context, int index) {
           final data = querySnapshot.docs[index].data() as Map;
-          print(data);
-          return ListTile(
-            title: Text(
-              data["users"][1],
-              style: TextStyle(color: Colors.white),
-            ),
-            subtitle: Text(
-              "email",
-              style: TextStyle(color: Colors.white),
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: ListTile(
+              contentPadding: EdgeInsets.zero,
+              onTap: () {
+                print(data);
+              },
+              title: Text(
+                data["users"][1],
+                style: TextStyle(color: Colors.white),
+              ),
+              subtitle: Text(
+                data["charRoomId"],
+                style: TextStyle(color: Colors.white),
+              ),
+              trailing: Column(
+                children: [
+                  Text(
+                    data["chatRoomCreateDate"].toString().split('-')[0],
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  Text(
+                    data["chatRoomCreateDate"].toString().split('-')[1],
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+              isThreeLine: true,
             ),
           );
         },

@@ -1,7 +1,10 @@
-// ignore_for_file: use_key_in_widget_constructors, unnecessary_new, deprecated_member_use, prefer_const_constructors, file_names
+// ignore_for_file: use_key_in_widget_constructors, unnecessary_new, deprecated_member_use, prefer_const_constructors, file_names, prefer_const_literals_to_create_immutables
+
+import 'dart:io';
 
 import 'package:chat_app/api/databaseFunctions.dart';
-
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../api/authFunctions.dart';
 import 'package:flutter/material.dart';
 
@@ -15,6 +18,10 @@ class _SignUpState extends State<SignUp> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   Api api = Api();
+  File _image;
+  ImagePicker imagePicker = ImagePicker();
+  String imageUrl;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,6 +35,59 @@ class _SignUpState extends State<SignUp> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Container(
+              width: 190,
+              height: 190,
+              padding: EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blueAccent,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.white24,
+                    offset: Offset(3, 8),
+                    blurRadius: 10,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: Container(
+                // decoration: avatarDecoration,
+                // padding: EdgeInsets.all(3),
+                child: imageUrl == null
+                    ? _image != null
+                        ? Container(
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              image: DecorationImage(
+                                fit: BoxFit.contain,
+                                image: AssetImage(_image.path),
+                              ),
+                            ),
+                          )
+                        : GestureDetector(
+                            onTap: () => picIamge(),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: Colors.grey,
+                              ),
+                              child: Center(
+                                child: Icon(Icons.add_a_photo),
+                              ),
+                            ),
+                          )
+                    : Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            fit: BoxFit.contain,
+                            image: NetworkImage(imageUrl),
+                          ),
+                        ),
+                      ),
+              ),
+            ),
             TextFormField(
               controller: fullNameController,
               decoration: textFieldInputDecoration("Full Name"),
@@ -110,18 +170,43 @@ class _SignUpState extends State<SignUp> {
 
   signWithGoogle() => api.signInWithGoogle(context);
 
-  forgetPassword() {}
-
   registerNow() => api
           .singUp(fullNameController.text, emailController.text,
               passwordController.text)
-          .then((value) {
+          .then((value) async {
+        await uploadImage();
         Map<String, String> userData = {
           "name": fullNameController.text,
-          "email": emailController.text
+          "email": emailController.text,
+          "profileImage": imageUrl,
         };
         DataBase dataBase = DataBase();
         dataBase.setUserData(userData);
         Navigator.pop(context);
       });
+  //upload image
+  Future picIamge() async {
+    PickedFile image = await imagePicker.getImage(source: ImageSource.gallery);
+    setState(() {
+      _image = File(image.path);
+    });
+  }
+
+  Future uploadImage() {
+    String imageName = DateTime.now().microsecondsSinceEpoch.toString();
+    final Reference storageFilename = FirebaseStorage.instance
+        .ref()
+        .child("UserProfileImages")
+        .child(imageName);
+    final UploadTask uploadTask = storageFilename.putFile(_image);
+    uploadTask.then((TaskSnapshot taskSnapshot) {
+      taskSnapshot.ref.getDownloadURL().then((imageURL) {
+        setState(() {
+          imageUrl = imageURL;
+        });
+      });
+    }).catchError((e) {
+      print(e.toString());
+    });
+  }
 }
