@@ -1,4 +1,4 @@
-// ignore_for_file: use_key_in_widget_constructors, unnecessary_new, deprecated_member_use, prefer_const_constructors, file_names, prefer_const_literals_to_create_immutables
+// ignore_for_file: use_key_in_widget_constructors, unnecessary_new, deprecated_member_use, prefer_const_constructors, file_names, prefer_const_literals_to_create_immutables, avoid_print
 
 import 'dart:io';
 
@@ -21,6 +21,7 @@ class _SignUpState extends State<SignUp> {
   File _image;
   ImagePicker imagePicker = ImagePicker();
   String imageUrl;
+  Color imageColor = Colors.yellow;
 
   @override
   Widget build(BuildContext context) {
@@ -30,122 +31,124 @@ class _SignUpState extends State<SignUp> {
         title: Text("Create New account"),
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
       ),
-      body: Container(
-        padding: EdgeInsets.all(25),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              width: 190,
-              height: 190,
-              padding: EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.blueAccent,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.white24,
-                    offset: Offset(3, 8),
-                    blurRadius: 10,
-                    spreadRadius: 4,
-                  ),
-                ],
-              ),
-              child: Container(
-                // decoration: avatarDecoration,
-                // padding: EdgeInsets.all(3),
-                child: imageUrl == null
-                    ? _image != null
-                        ? Container(
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              image: DecorationImage(
-                                fit: BoxFit.contain,
-                                image: AssetImage(_image.path),
-                              ),
-                            ),
-                          )
-                        : GestureDetector(
-                            onTap: () => picIamge(),
-                            child: Container(
+      body: SingleChildScrollView(
+        child: Container(
+          padding: EdgeInsets.all(25),
+          child: Column(
+            children: [
+              Container(
+                width: 190,
+                height: 190,
+                padding: EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: imageColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.white24,
+                      offset: Offset(3, 8),
+                      blurRadius: 10,
+                      spreadRadius: 4,
+                    ),
+                  ],
+                ),
+                child: Container(
+                  // decoration: avatarDecoration,
+                  // padding: EdgeInsets.all(3),
+                  child: imageUrl == null
+                      ? _image != null
+                          ? Container(
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: Colors.grey,
+                                image: DecorationImage(
+                                  image: FileImage(_image),
+                                  fit: BoxFit.cover,
+                                ),
                               ),
-                              child: Center(
-                                child: Icon(Icons.add_a_photo),
+                            )
+                          : GestureDetector(
+                              onTap: () => picIamge(),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.grey,
+                                ),
+                                child: Center(
+                                  child: Icon(Icons.add_a_photo),
+                                ),
                               ),
+                            )
+                      : Container(
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            image: DecorationImage(
+                              fit: BoxFit.cover,
+                              image: NetworkImage(imageUrl),
                             ),
-                          )
-                    : Container(
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          image: DecorationImage(
-                            fit: BoxFit.contain,
-                            image: NetworkImage(imageUrl),
                           ),
                         ),
-                      ),
+                ),
               ),
-            ),
-            TextFormField(
-              controller: fullNameController,
-              decoration: textFieldInputDecoration("Full Name"),
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: emailController,
-              decoration: textFieldInputDecoration("Email"),
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: passwordController,
-              decoration: textFieldInputDecoration("Password"),
-              style: TextStyle(color: Colors.white),
-              obscureText: true,
-            ),
-            SizedBox(height: 20),
-            Column(
-              children: [
-                RaisedButton(
-                  onPressed: () => registerNow(),
-                  child: Text("sign Up"),
-                  padding: EdgeInsets.symmetric(horizontal: 95, vertical: 15),
-                  shape: rectangleBorder(),
-                ),
-                SizedBox(height: 10),
-                RaisedButton(
-                  onPressed: () => signWithGoogle(),
-                  child: Text("Sign Up With Google"),
-                  shape: rectangleBorder(),
-                  padding: EdgeInsets.symmetric(horizontal: 60, vertical: 15),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+              TextFormField(
+                controller: fullNameController,
+                decoration: textFieldInputDecoration("Full Name"),
+                style: TextStyle(color: Colors.white),
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                controller: emailController,
+                decoration: textFieldInputDecoration("Email"),
+                style: TextStyle(color: Colors.white),
+              ),
+              SizedBox(height: 20),
+              TextFormField(
+                controller: passwordController,
+                decoration: textFieldInputDecoration("Password"),
+                style: TextStyle(color: Colors.white),
+                obscureText: true,
+                onFieldSubmitted: (_) => registerNow(),
+              ),
+              SizedBox(height: 20),
+              Column(
                 children: [
-                  Text(
-                    "Alread have account? ",
-                    style: TextStyle(color: Colors.white),
+                  RaisedButton(
+                    onPressed: () => registerNow(),
+                    child: Text("sign Up"),
+                    padding: EdgeInsets.symmetric(horizontal: 95, vertical: 15),
+                    shape: rectangleBorder(),
                   ),
-                  InkWell(
-                    onTap: () => sign(),
-                    child: Text(
-                      "Sign In",
-                      style: TextStyle(
-                          color: Colors.white,
-                          decoration: TextDecoration.underline),
-                    ),
-                  )
+                  SizedBox(height: 10),
+                  RaisedButton(
+                    onPressed: () => signWithGoogle(),
+                    child: Text("Sign Up With Google"),
+                    shape: rectangleBorder(),
+                    padding: EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                  ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Alread have account? ",
+                      style: TextStyle(color: Colors.white),
+                    ),
+                    InkWell(
+                      onTap: () => sign(),
+                      child: Text(
+                        "Sign In",
+                        style: TextStyle(
+                            color: Colors.white,
+                            decoration: TextDecoration.underline),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -171,10 +174,9 @@ class _SignUpState extends State<SignUp> {
   signWithGoogle() => api.signInWithGoogle(context);
 
   registerNow() => api
-          .singUp(fullNameController.text, emailController.text,
+          .singUp(fullNameController.text, imageUrl, emailController.text,
               passwordController.text)
           .then((value) async {
-        await uploadImage();
         Map<String, String> userData = {
           "name": fullNameController.text,
           "email": emailController.text,
@@ -190,6 +192,7 @@ class _SignUpState extends State<SignUp> {
     setState(() {
       _image = File(image.path);
     });
+    await uploadImage();
   }
 
   Future uploadImage() {
@@ -203,6 +206,9 @@ class _SignUpState extends State<SignUp> {
       taskSnapshot.ref.getDownloadURL().then((imageURL) {
         setState(() {
           imageUrl = imageURL;
+        });
+        setState(() {
+          imageColor = Colors.green;
         });
       });
     }).catchError((e) {

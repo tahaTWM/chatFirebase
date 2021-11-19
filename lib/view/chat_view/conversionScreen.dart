@@ -1,9 +1,9 @@
-// ignore_for_file: file_names, prefer_const_constructors, avoid_print, deprecated_member_use
+// ignore_for_file: file_names, prefer_const_constructors, avoid_print, deprecated_member_use, missing_required_param, curly_braces_in_flow_control_structures
 
 import './/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../../api/authFunctions.dart';
 import 'package:flutter/material.dart';
+import 'profile.dart';
 import 'search.dart';
 
 class ConversionScreen extends StatefulWidget {
@@ -28,15 +28,17 @@ class _ConversionScreenState extends State<ConversionScreen> {
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
         title: Text("Home Screen"),
         actions: [
-          IconButton(
-              onPressed: () {
-                Api api = Api();
-                api.signOut(context);
-              },
-              icon: Icon(Icons.logout_rounded))
+          FlatButton.icon(
+            onPressed: () {
+              Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Profile()));
+            },
+            icon: Icon(Icons.account_circle_rounded, color: Colors.white),
+            label: Text("Profile", style: TextStyle(color: Colors.white)),
+          ),
         ],
       ),
-      body: querySnapshot == null
+      body: querySnapshot == null || querySnapshot.size == 0
           ? Center(
               child: Text(
                 "You didn't\ndo any Chat yet",
@@ -61,9 +63,10 @@ class _ConversionScreenState extends State<ConversionScreen> {
     DataBase dataBase = DataBase();
     dataBase.getChatRooms().then(
       (value) {
-        setState(() {
-          querySnapshot = value;
-        });
+        if (value != null)
+          setState(() {
+            querySnapshot = value;
+          });
       },
     );
   }
@@ -80,6 +83,13 @@ class _ConversionScreenState extends State<ConversionScreen> {
               onTap: () {
                 print(data);
               },
+              onLongPress: () async {
+                FirebaseFirestore.instance
+                    .collection("ChatRoom")
+                    .doc(data["charRoomId"])
+                    .delete();
+                await getChatsRoom();
+              },
               title: Text(
                 data["users"][1],
                 style: TextStyle(color: Colors.white),
@@ -88,25 +98,20 @@ class _ConversionScreenState extends State<ConversionScreen> {
                 data["charRoomId"],
                 style: TextStyle(color: Colors.white),
               ),
-              trailing: Column(
-                children: [
-                  Text(
-                    data["chatRoomCreateDate"].toString().split('-')[0],
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  Text(
-                    data["chatRoomCreateDate"].toString().split('-')[1],
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ],
+              trailing: Text(
+                data["chatRoomCreateDate"].toString().split('-')[0].toString() +
+                    '\n' +
+                    data["chatRoomCreateDate"]
+                        .toString()
+                        .split('-')[1]
+                        .toString(),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
               ),
-              isThreeLine: true,
             ),
           );
         },

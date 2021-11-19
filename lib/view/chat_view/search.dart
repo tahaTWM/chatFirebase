@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'conversionScreen.dart';
+
 class Search extends StatefulWidget {
   @override
   _SearchState createState() => _SearchState();
@@ -36,6 +38,14 @@ class _SearchState extends State<Search> {
               controller: searchController,
               decoration: InputDecoration(
                 hintText: " Search For Member",
+                suffixIcon: IconButton(
+                  onPressed: () => searchMethod(),
+                  icon: Icon(
+                    Icons.search,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                ),
                 hintStyle: TextStyle(color: Colors.white54),
                 focusedBorder: UnderlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
@@ -62,7 +72,17 @@ class _SearchState extends State<Search> {
                             fontWeight: FontWeight.w500),
                       ),
                     )
-                  : searchWidget(),
+                  : querySnapshot.size == 0
+                      ? Center(
+                          child: Text(
+                            "Nothing Found",
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 23,
+                                fontWeight: FontWeight.w500),
+                          ),
+                        )
+                      : searchWidget(),
             )
           ],
         ),
@@ -76,6 +96,7 @@ class _SearchState extends State<Search> {
         setState(() {
           querySnapshot = value;
         });
+        FocusScope.of(context).unfocus();
       },
     );
   }
@@ -117,7 +138,11 @@ class _SearchState extends State<Search> {
                   "users": users
                 };
 
-                dataBase.createChatRoom(charRoomId, chatRoomMap);
+                await dataBase.createChatRoom(charRoomId, chatRoomMap);
+                Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (context) => ConversionScreen()),
+                    (route) => false);
               },
               child: Text("Message", style: TextStyle(color: Colors.white)),
               shape: RoundedRectangleBorder(

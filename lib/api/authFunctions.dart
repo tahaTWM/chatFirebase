@@ -57,11 +57,13 @@ class Api {
     }
   }
 
-  Future<bool> singUp(String fullname, String email, String password) async {
+  Future<bool> singUp(
+      String fullname, String photoURL, String email, String password) async {
     try {
       final result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       await _auth.currentUser.updateDisplayName(fullname);
+      await _auth.currentUser.updatePhotoURL(photoURL);
       if (result != null) return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
