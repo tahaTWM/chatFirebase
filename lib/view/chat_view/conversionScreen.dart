@@ -3,6 +3,7 @@
 import './/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'charRoomScreen.dart';
 import 'profile.dart';
 import 'search.dart';
 
@@ -12,9 +13,14 @@ class ConversionScreen extends StatefulWidget {
 }
 
 class _ConversionScreenState extends State<ConversionScreen> {
+  var userData;
+  var name;
+  var photoUrl;
+
   @override
   void initState() {
     getChatsRoom();
+    getUserData();
     super.initState();
   }
 
@@ -33,8 +39,26 @@ class _ConversionScreenState extends State<ConversionScreen> {
               Navigator.push(
                   context, MaterialPageRoute(builder: (context) => Profile()));
             },
-            icon: Icon(Icons.account_circle_rounded, color: Colors.white),
-            label: Text("Profile", style: TextStyle(color: Colors.white)),
+            icon: userData == null
+                ? Icon(Icons.account_circle_rounded, color: Colors.white)
+                : Container(
+                    width: 30,
+                    height: 30,
+                    padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                    ),
+                    child: ClipRRect(
+                        borderRadius: BorderRadius.circular(500),
+                        child: Image.network(
+                          photoUrl,
+                          fit: BoxFit.cover,
+                        )),
+                  ),
+            label: userData == null
+                ? Text("Profile", style: TextStyle(color: Colors.white))
+                : Text(name, style: TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -81,7 +105,11 @@ class _ConversionScreenState extends State<ConversionScreen> {
             child: ListTile(
               contentPadding: EdgeInsets.zero,
               onTap: () {
-                print(data);
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) =>
+                            ChatRoomScreen(data["charRoomId"])));
               },
               onLongPress: () async {
                 FirebaseFirestore.instance
@@ -116,4 +144,15 @@ class _ConversionScreenState extends State<ConversionScreen> {
           );
         },
       );
+
+  getUserData() async {
+    DataBase dataBase = DataBase();
+    await dataBase.getUserData().then((value) {
+      setState(() {
+        userData = value;
+        name = userData["name"];
+        photoUrl = userData["photoUrl"];
+      });
+    });
+  }
 }

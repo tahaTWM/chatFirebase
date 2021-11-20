@@ -186,6 +186,7 @@ class _SignUpState extends State<SignUp> {
         dataBase.setUserData(userData);
         Navigator.pop(context);
       });
+
   //upload image
   Future picIamge() async {
     PickedFile image = await imagePicker.getImage(source: ImageSource.gallery);

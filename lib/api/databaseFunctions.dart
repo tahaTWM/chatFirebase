@@ -11,6 +11,13 @@ class DataBase {
         .get();
   }
 
+  Future getUsersByEmail(String email) async {
+    return await FirebaseFirestore.instance
+        .collection("Users")
+        .where("email", isEqualTo: email)
+        .get();
+  }
+
   setUserData(userMap) {
     FirebaseFirestore.instance
         .collection("Users")
@@ -19,7 +26,13 @@ class DataBase {
   }
 
   Future getUserData() async {
-    return await FirebaseAuth.instance.currentUser.providerData;
+    Map<String, dynamic> mapRow;
+    mapRow = {
+      "name": await FirebaseAuth.instance.currentUser.displayName,
+      "email": await FirebaseAuth.instance.currentUser.email,
+      "photoUrl": await FirebaseAuth.instance.currentUser.photoURL
+    };
+    return await mapRow;
   }
 
   getChatRooms() async {
@@ -34,5 +47,22 @@ class DataBase {
         .catchError(
           (onError) => print(onError.toString()),
         );
+  }
+
+  Future sendMessage(String chatRoomID, messageMap) async {
+    FirebaseFirestore.instance
+        .collection("ChatRoom")
+        .doc(chatRoomID)
+        .collection("chats")
+        .add(messageMap)
+        .catchError((onError) => print(onError.toString()));
+  }
+
+  getChats(String chatRoomID) async {
+    FirebaseFirestore.instance
+        .collection("ChatRoom")
+        .doc(chatRoomID)
+        .collection("chats")
+        .snapshots();
   }
 }

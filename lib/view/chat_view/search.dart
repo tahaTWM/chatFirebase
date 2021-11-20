@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, deprecated_member_use, avoid_print, unused_local_variable
+// ignore_for_file: prefer_const_constructors, deprecated_member_use, avoid_print, unused_local_variable, curly_braces_in_flow_control_structures
 
 import 'package:chat_app/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -17,8 +17,12 @@ class _SearchState extends State<Search> {
   TextEditingController searchController = TextEditingController();
   QuerySnapshot querySnapshot;
   DataBase dataBase = DataBase();
+  var userData;
+  var name;
+  var photoUrl;
   @override
   void initState() {
+    getUserData();
     super.initState();
   }
 
@@ -29,6 +33,36 @@ class _SearchState extends State<Search> {
       appBar: AppBar(
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
         title: Text("Searching..."),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 10),
+            child: Row(
+              children: [
+                userData == null
+                    ? Icon(Icons.account_circle_rounded, color: Colors.white)
+                    : Container(
+                        width: 30,
+                        height: 30,
+                        padding: EdgeInsets.all(5),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(500),
+                            child: Image.network(
+                              photoUrl,
+                              fit: BoxFit.cover,
+                            )),
+                      ),
+                SizedBox(width: 6),
+                userData == null
+                    ? Text("Profile", style: TextStyle(color: Colors.white))
+                    : Text(name, style: TextStyle(color: Colors.white)),
+              ],
+            ),
+          )
+        ],
       ),
       body: Container(
         padding: EdgeInsets.all(27),
@@ -39,7 +73,12 @@ class _SearchState extends State<Search> {
               decoration: InputDecoration(
                 hintText: " Search For Member",
                 suffixIcon: IconButton(
-                  onPressed: () => searchMethod(),
+                  onPressed: () async {
+                    if (searchController.text.contains('@'))
+                      await searchMethod("email");
+                    else
+                      await searchMethod("name");
+                  },
                   icon: Icon(
                     Icons.search,
                     color: Colors.white,
@@ -58,7 +97,10 @@ class _SearchState extends State<Search> {
               //     searchMethod();
               //   });
               // },
-              onFieldSubmitted: (value) => searchMethod(),
+              onFieldSubmitted: (value) {
+                searchMethod("name");
+                if (querySnapshot.size == 0) searchMethod('email');
+              },
               cursorColor: Colors.white,
             ),
             Expanded(
@@ -90,15 +132,25 @@ class _SearchState extends State<Search> {
     );
   }
 
-  searchMethod() {
-    dataBase.getUsersByUserNames(searchController.text).then(
-      (value) {
-        setState(() {
-          querySnapshot = value;
-        });
-        FocusScope.of(context).unfocus();
-      },
-    );
+  searchMethod(String type) {
+    if (type == "name")
+      dataBase.getUsersByUserNames(searchController.text).then(
+        (value) {
+          setState(() {
+            querySnapshot = value;
+          });
+          FocusScope.of(context).unfocus();
+        },
+      );
+    if (type == "email")
+      dataBase.getUsersByEmail(searchController.text).then(
+        (value) {
+          setState(() {
+            querySnapshot = value;
+          });
+          FocusScope.of(context).unfocus();
+        },
+      );
   }
 
   searchWidget() => ListView.builder(
@@ -108,6 +160,16 @@ class _SearchState extends State<Search> {
           final data = querySnapshot.docs[index].data() as Map;
           return ListTile(
             contentPadding: EdgeInsets.zero,
+            leading: Container(
+              width: 60,
+              height: 60,
+              padding: EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  shape: BoxShape.circle,
+                  image: DecorationImage(
+                      image: NetworkImage(data['profileImage']))),
+            ),
             title: Text(
               data["name"],
               style: TextStyle(color: Colors.white),
@@ -115,41 +177,62 @@ class _SearchState extends State<Search> {
             subtitle: Text(
               data["email"],
               style: TextStyle(color: Colors.white),
+              overflow: TextOverflow.ellipsis,
             ),
-            trailing: RaisedButton(
-              onPressed: () async {
-                List users = [];
-                var time = DateFormat('MMM d, yyyy');
-                var day = DateFormat('EEEE, hh:mm a');
+            trailing: ButtonTheme(
+              padding: EdgeInsets.all(6),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minWidth: 0,
+              height: 0,
+              child: RaisedButton(
+                onPressed: () async {
+                  List users = [];
+                  var time = DateFormat('MMM d, yyyy');
+                  var day = DateFormat('EEEE, hh:mm a');
 
-                String timeNow = time.format(DateTime.now()).toString();
-                String dayNow = day.format(DateTime.now()).toString();
+                  String timeNow = time.format(DateTime.now()).toString();
+                  String dayNow = day.format(DateTime.now()).toString();
 
-                SharedPreferences pref = await SharedPreferences.getInstance();
-                users.add(pref.getString("username"));
-                users.add(data["name"]);
+                  SharedPreferences pref =
+                      await SharedPreferences.getInstance();
+                  users.add(pref.getString("username"));
+                  users.add(data["name"]);
 
-                final charRoomId =
-                    "${pref.getString("username")}-${data["name"]}";
+                  final charRoomId =
+                      "${pref.getString("username")}-${data["name"]}";
 
-                Map<String, dynamic> chatRoomMap = {
-                  "chatRoomCreateDate": "$timeNow-$dayNow",
-                  "charRoomId": charRoomId,
-                  "users": users
-                };
+                  Map<String, dynamic> chatRoomMap = {
+                    "chatRoomCreateDate": "$timeNow-$dayNow",
+                    "charRoomId": charRoomId,
+                    "users": users
+                  };
 
-                await dataBase.createChatRoom(charRoomId, chatRoomMap);
-                Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(builder: (context) => ConversionScreen()),
-                    (route) => false);
-              },
-              child: Text("Message", style: TextStyle(color: Colors.white)),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-              color: Colors.blue[300],
+                  await dataBase.createChatRoom(charRoomId, chatRoomMap);
+                  Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => ConversionScreen()),
+                      (route) => false);
+                },
+                child: Text("Message", style: TextStyle(color: Colors.white)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
+                color: Colors.blue[300],
+                elevation: 0,
+              ),
             ),
           );
         },
       );
+
+  getUserData() async {
+    DataBase dataBase = DataBase();
+    await dataBase.getUserData().then((value) {
+      setState(() {
+        userData = value;
+        name = userData["name"];
+        photoUrl = userData["photoUrl"];
+      });
+    });
+  }
 }
