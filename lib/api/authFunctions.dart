@@ -1,4 +1,7 @@
-// ignore_for_file: unused_field, avoid_print, missing_return, curly_braces_in_flow_control_structures, file_names
+// ignore_for_file: unused_field, avoid_print, missing_return, curly_braces_in_flow_control_structures, file_names, unused_local_variable
+
+import 'dart:convert';
+import 'dart:developer';
 
 import '../main.dart';
 import '../view/chat_view/conversionScreen.dart';
@@ -6,6 +9,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
+import 'databaseFunctions.dart';
 
 class Api {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -32,13 +37,14 @@ class Api {
 
   signInWithGoogle(BuildContext context) async {
     try {
-      final GoogleSignIn _googleSignIn = GoogleSignIn();
+      final GoogleSignIn googleSignIn = GoogleSignIn();
+      GoogleSignInAuthentication googleSignInAuthentication;
 
-      final GoogleSignInAccount googleSignInAccount =
-          await _googleSignIn.signIn();
+      GoogleSignInAccount googleSignInAccount = await googleSignIn.signIn();
 
-      final GoogleSignInAuthentication googleSignInAuthentication =
-          await googleSignInAccount.authentication;
+      if (googleSignInAccount != null) {
+        googleSignInAuthentication = await googleSignInAccount.authentication;
+      }
 
       final AuthCredential credential = GoogleAuthProvider.credential(
           idToken: googleSignInAuthentication.idToken,
@@ -49,6 +55,17 @@ class Api {
       if (result == null) {
         print('result is null');
       } else {
+        SharedPreferences pref = await SharedPreferences.getInstance();
+        await pref.setString("uid", googleSignInAccount.id.toString());
+        await pref.setString("username", googleSignInAccount.displayName);
+
+        Map<String, String> userData = {
+          "name": googleSignInAccount.displayName,
+          "email": googleSignInAccount.email,
+          "profileImage": googleSignInAccount.photoUrl,
+        };
+        DataBase dataBase = DataBase();
+        dataBase.setUserData(userData);
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => ConversionScreen()));
       }

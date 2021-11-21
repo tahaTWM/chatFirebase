@@ -18,8 +18,8 @@ dependencies:
   firebase_storage: null
   flutter:
     sdk: flutter
-  google_sign_in: null
-  image_picker: null
+  google_sign_in: 
+  image_picker: ^0.8.4+4
   intl: null
   shared_preferences: null
   webview_flutter: ^2.3.1

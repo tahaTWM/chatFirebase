@@ -24,16 +24,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   Stream<QuerySnapshot> querySnapshot;
 
   String username;
+
+  final _controller = ScrollController();
   @override
   void initState() {
     getUserData();
     getChatMethod();
+
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Color.fromRGBO(54, 57, 63, 1),
       appBar: AppBar(
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
@@ -45,20 +49,29 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               children: [
                 userData == null
                     ? Icon(Icons.account_circle_rounded, color: Colors.white)
-                    : Container(
-                        width: 30,
-                        height: 30,
-                        padding: EdgeInsets.all(1.2),
-                        decoration: BoxDecoration(
-                          color: Colors.green,
-                          shape: BoxShape.circle,
+                    : GestureDetector(
+                        onTap: () {
+                          _controller.animateTo(
+                            _controller.position.maxScrollExtent,
+                            duration: Duration(seconds: 1),
+                            curve: Curves.fastOutSlowIn,
+                          );
+                        },
+                        child: Container(
+                          width: 30,
+                          height: 30,
+                          padding: EdgeInsets.all(1.2),
+                          decoration: BoxDecoration(
+                            color: Colors.green,
+                            shape: BoxShape.circle,
+                          ),
+                          child: ClipRRect(
+                              borderRadius: BorderRadius.circular(500),
+                              child: Image.network(
+                                photoUrl,
+                                fit: BoxFit.cover,
+                              )),
                         ),
-                        child: ClipRRect(
-                            borderRadius: BorderRadius.circular(500),
-                            child: Image.network(
-                              photoUrl,
-                              fit: BoxFit.cover,
-                            )),
                       ),
                 SizedBox(width: 6),
                 userData == null
@@ -69,41 +82,45 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
           )
         ],
       ),
-      body: Stack(
+      body: Column(
         children: [
           querySnapshot == null
               ? Center(
                   child: Text("No Chat", style: TextStyle(color: Colors.white)))
               : chatWidget(),
-          Container(
-            padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
-            alignment: Alignment.bottomCenter,
-            child: TextFormField(
-              controller: chatingController,
-              decoration: InputDecoration(
-                hintText: "typing...",
-                suffixIcon: IconButton(
-                  onPressed: () {
-                    sendMessage().then((value) {
-                      setState(() {
-                        chatingController.clear();
+          Expanded(
+            flex: 1,
+            child: Container(
+              padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
+              alignment: Alignment.bottomCenter,
+              child: TextFormField(
+                onTap: () {},
+                controller: chatingController,
+                decoration: InputDecoration(
+                  hintText: "typing...",
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      sendMessage().then((value) {
+                        setState(() {
+                          chatingController.clear();
+                        });
                       });
-                    });
-                  },
-                  icon: Icon(
-                    Icons.send_rounded,
-                    color: Colors.white,
-                    size: 24,
+                    },
+                    icon: Icon(
+                      Icons.send_rounded,
+                      color: Colors.white,
+                      size: 24,
+                    ),
                   ),
+                  hintStyle: TextStyle(color: Colors.white54),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.white)),
                 ),
-                hintStyle: TextStyle(color: Colors.white54),
-                focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white)),
-                enabledBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white)),
+                style: TextStyle(color: Colors.white, fontSize: 22),
+                cursorColor: Colors.white,
               ),
-              style: TextStyle(color: Colors.white, fontSize: 22),
-              cursorColor: Colors.white,
             ),
           )
         ],
@@ -156,82 +173,86 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       stream: querySnapshot,
       builder: (context, snapshot) {
         return snapshot.hasData
-            ? ListView.builder(
-                itemCount: snapshot.data.docs.length,
-                itemBuilder: (BuildContext context, int index) {
-                  var data = snapshot.data.docs[index].data() as Map;
-                  return username == data["sendBy"]
-                      ? GestureDetector(
-                          onLongPress: () async {
-                            var doc_ref = await FirebaseFirestore.instance
-                                .collection("ChatRoom")
-                                .doc(widget.chatRoomId)
-                                .collection("chats")
-                                .orderBy("timeAsIdForSorting")
-                                .get();
-                            var id = doc_ref.docs[index].id;
-                            FirebaseFirestore.instance
-                                .collection("ChatRoom")
-                                .doc(widget.chatRoomId)
-                                .collection("chats")
-                                .doc(id)
-                                .delete();
-                          },
-                          child: Container(
-                            alignment: Alignment.centerRight,
+            ? Expanded(
+                flex: 8,
+                child: ListView.builder(
+                  controller: _controller,
+                  itemCount: snapshot.data.docs.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    var data = snapshot.data.docs[index].data() as Map;
+                    return username == data["sendBy"]
+                        ? GestureDetector(
+                            onLongPress: () async {
+                              var doc_ref = await FirebaseFirestore.instance
+                                  .collection("ChatRoom")
+                                  .doc(widget.chatRoomId)
+                                  .collection("chats")
+                                  .orderBy("timeAsIdForSorting")
+                                  .get();
+                              var id = doc_ref.docs[index].id;
+                              FirebaseFirestore.instance
+                                  .collection("ChatRoom")
+                                  .doc(widget.chatRoomId)
+                                  .collection("chats")
+                                  .doc(id)
+                                  .delete();
+                            },
+                            child: Container(
+                              alignment: Alignment.centerRight,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(data["data"],
+                                      style: TextStyle(
+                                          color:
+                                              Color.fromRGBO(49, 110, 125, 0.7),
+                                          fontSize: 13)),
+                                  SizedBox(width: 10),
+                                  Container(
+                                    margin: EdgeInsets.all(5),
+                                    padding: EdgeInsets.symmetric(
+                                        vertical: 8, horizontal: 10),
+                                    decoration: BoxDecoration(
+                                        color: Color.fromRGBO(49, 110, 125, 1),
+                                        borderRadius: BorderRadius.only(
+                                            topLeft: Radius.circular(40),
+                                            topRight: Radius.circular(40),
+                                            bottomLeft: Radius.circular(40))),
+                                    child: Text(data["message"],
+                                        style: TextStyle(
+                                            color: Colors.white, fontSize: 22)),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : Container(
+                            alignment: Alignment.centerLeft,
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
-                                Text(data["data"],
-                                    style: TextStyle(
-                                        color:
-                                            Color.fromRGBO(49, 110, 125, 0.7),
-                                        fontSize: 13)),
-                                SizedBox(width: 10),
                                 Container(
                                   margin: EdgeInsets.all(5),
                                   padding: EdgeInsets.symmetric(
                                       vertical: 8, horizontal: 10),
                                   decoration: BoxDecoration(
-                                      color: Color.fromRGBO(49, 110, 125, 1),
+                                      color: Colors.grey[700],
                                       borderRadius: BorderRadius.only(
                                           topLeft: Radius.circular(40),
                                           topRight: Radius.circular(40),
-                                          bottomLeft: Radius.circular(40))),
+                                          bottomRight: Radius.circular(40))),
                                   child: Text(data["message"],
                                       style: TextStyle(
                                           color: Colors.white, fontSize: 22)),
                                 ),
-                           ],
-                            ),
-                          ),
-                        )
-                      : Container(
-                          alignment: Alignment.centerLeft,
-                          child: Row(
-                            children: [
-                              Container(
-                                margin: EdgeInsets.all(5),
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 8, horizontal: 10),
-                                decoration: BoxDecoration(
-                                    color: Colors.grey[700],
-                                    borderRadius: BorderRadius.only(
-                                        topLeft: Radius.circular(40),
-                                        topRight: Radius.circular(40),
-                                        bottomRight: Radius.circular(40))),
-                                child: Text(data["message"],
+                                SizedBox(width: 10),
+                                Text(data["data"],
                                     style: TextStyle(
-                                        color: Colors.white, fontSize: 22)),
-                              ),
-                              SizedBox(width: 10),
-                              Text(data["data"],
-                                  style: TextStyle(
-                                      color: Colors.grey[600], fontSize: 13))
-                            ],
-                          ),
-                        );
-                },
+                                        color: Colors.grey[600], fontSize: 13))
+                              ],
+                            ),
+                          );
+                  },
+                ),
               )
             : Center(child: CircularProgressIndicator());
       },

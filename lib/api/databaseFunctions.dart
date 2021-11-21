@@ -28,11 +28,11 @@ class DataBase {
   Future getUserData() async {
     Map<String, dynamic> mapRow;
     mapRow = {
-      "name": await FirebaseAuth.instance.currentUser.displayName,
-      "email": await FirebaseAuth.instance.currentUser.email,
-      "photoUrl": await FirebaseAuth.instance.currentUser.photoURL
+      "name": FirebaseAuth.instance.currentUser.displayName,
+      "email": FirebaseAuth.instance.currentUser.email,
+      "photoUrl": FirebaseAuth.instance.currentUser.photoURL
     };
-    return await mapRow;
+    return mapRow;
   }
 
   Future getChatRooms() async {

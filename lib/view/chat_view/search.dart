@@ -163,7 +163,7 @@ class _SearchState extends State<Search> {
             leading: Container(
               width: 60,
               height: 60,
-              padding: EdgeInsets.all(5),
+              padding: EdgeInsets.all(1.2),
               decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,

@@ -20,7 +20,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
   @override
   void initState() {
     getChatsRoom();
-    getUserData();
+    getSenderData();
     super.initState();
   }
 
@@ -110,6 +110,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
                     child: ListTile(
                       contentPadding: EdgeInsets.zero,
                       onTap: () {
+                        print(data['charRoomId'].toString().split('-')[1]);
                         Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -169,7 +170,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
     );
   }
 
-  getUserData() async {
+  getSenderData() async {
     DataBase dataBase = DataBase();
     await dataBase.getUserData().then((value) {
       setState(() {
@@ -177,6 +178,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
         name = userData["name"];
         photoUrl = userData["photoUrl"];
       });
-    });
+      print(userData);
+    }).catchError((onError) => print(onError.toString()));
   }
 }
