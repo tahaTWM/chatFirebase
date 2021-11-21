@@ -35,8 +35,8 @@ class DataBase {
     return await mapRow;
   }
 
-  getChatRooms() async {
-    return await FirebaseFirestore.instance.collection("ChatRoom").get();
+  Future getChatRooms() async {
+    return FirebaseFirestore.instance.collection("ChatRoom").snapshots();
   }
 
   createChatRoom(String charRoomId, chatRoomMap) {
@@ -58,11 +58,12 @@ class DataBase {
         .catchError((onError) => print(onError.toString()));
   }
 
-  getChats(String chatRoomID) async {
-    FirebaseFirestore.instance
+  Future getChats(String chatRoomID) async {
+    return FirebaseFirestore.instance
         .collection("ChatRoom")
         .doc(chatRoomID)
         .collection("chats")
+        .orderBy("timeAsIdForSorting")
         .snapshots();
   }
 }

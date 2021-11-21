@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import 'conversionScreen.dart';
+import 'charRoomScreen.dart';
 
 class Search extends StatefulWidget {
   @override
@@ -208,11 +208,10 @@ class _SearchState extends State<Search> {
                   };
 
                   await dataBase.createChatRoom(charRoomId, chatRoomMap);
-                  Navigator.pushAndRemoveUntil(
+                  Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => ConversionScreen()),
-                      (route) => false);
+                          builder: (context) => ChatRoomScreen(charRoomId)));
                 },
                 child: Text("Message", style: TextStyle(color: Colors.white)),
                 shape: RoundedRectangleBorder(

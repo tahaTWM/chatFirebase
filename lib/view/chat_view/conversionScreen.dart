@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, prefer_const_constructors, avoid_print, deprecated_member_use, missing_required_param, curly_braces_in_flow_control_structures
+// ignore_for_file: file_names, prefer_const_constructors, avoid_print, deprecated_member_use, missing_required_param, curly_braces_in_flow_control_structures, prefer_typing_uninitialized_variables
 
 import './/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -24,7 +24,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
     super.initState();
   }
 
-  QuerySnapshot querySnapshot;
+  Stream querySnapshot;
 
   @override
   Widget build(BuildContext context) {
@@ -44,9 +44,9 @@ class _ConversionScreenState extends State<ConversionScreen> {
                 : Container(
                     width: 30,
                     height: 30,
-                    padding: EdgeInsets.all(5),
+                    padding: EdgeInsets.all(1.2),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: Colors.green,
                       shape: BoxShape.circle,
                     ),
                     child: ClipRRect(
@@ -62,7 +62,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
           ),
         ],
       ),
-      body: querySnapshot == null || querySnapshot.size == 0
+      body: querySnapshot == null
           ? Center(
               child: Text(
                 "You didn't\ndo any Chat yet",
@@ -76,6 +76,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
             )
           : chatsRoomsWidget(),
       floatingActionButton: FloatingActionButton(
+        backgroundColor: Color.fromRGBO(49, 110, 125, 1),
         child: Icon(Icons.search),
         onPressed: () => Navigator.push(
             context, MaterialPageRoute(builder: (context) => Search())),
@@ -83,67 +84,90 @@ class _ConversionScreenState extends State<ConversionScreen> {
     );
   }
 
-  getChatsRoom() {
+  getChatsRoom() async {
     DataBase dataBase = DataBase();
-    dataBase.getChatRooms().then(
+    await dataBase.getChatRooms().then(
       (value) {
-        if (value != null)
-          setState(() {
-            querySnapshot = value;
-          });
+        setState(() {
+          querySnapshot = value;
+        });
       },
     );
   }
 
-  chatsRoomsWidget() => ListView.builder(
-        itemCount: querySnapshot.docs.length,
-        padding: EdgeInsets.symmetric(vertical: 10),
-        itemBuilder: (BuildContext context, int index) {
-          final data = querySnapshot.docs[index].data() as Map;
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 10),
-            child: ListTile(
-              contentPadding: EdgeInsets.zero,
-              onTap: () {
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) =>
-                            ChatRoomScreen(data["charRoomId"])));
-              },
-              onLongPress: () async {
-                FirebaseFirestore.instance
-                    .collection("ChatRoom")
-                    .doc(data["charRoomId"])
-                    .delete();
-                await getChatsRoom();
-              },
-              title: Text(
-                data["users"][1],
-                style: TextStyle(color: Colors.white),
-              ),
-              subtitle: Text(
-                data["charRoomId"],
-                style: TextStyle(color: Colors.white),
-              ),
-              trailing: Text(
-                data["chatRoomCreateDate"].toString().split('-')[0].toString() +
-                    '\n' +
-                    data["chatRoomCreateDate"]
-                        .toString()
-                        .split('-')[1]
-                        .toString(),
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w500,
-                  fontSize: 12,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ),
-          );
-        },
-      );
+  chatsRoomsWidget() {
+    return StreamBuilder(
+      stream: querySnapshot,
+      builder: (context, snapshot) {
+        return snapshot.hasData
+            ? ListView.builder(
+                itemCount: snapshot.data.docs.length,
+                padding: EdgeInsets.symmetric(vertical: 10),
+                itemBuilder: (BuildContext context, int index) {
+                  final data = snapshot.data.docs[index].data() as Map;
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ChatRoomScreen(data["charRoomId"])));
+                      },
+                      onLongPress: () async {
+                        FirebaseFirestore.instance
+                            .collection("ChatRoom")
+                            .doc(data["charRoomId"])
+                            .delete();
+                      },
+                      leading: Container(
+                        width: 55,
+                        height: 55,
+                        padding: EdgeInsets.all(1.2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(500),
+                            child: Image.network(
+                              photoUrl,
+                              fit: BoxFit.cover,
+                            )),
+                      ),
+                      title: Text(
+                        data["users"][1],
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        data["chatRoomCreateDate"]
+                            .toString()
+                            .split('-')[1]
+                            .toString(),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      trailing: Text(
+                        data["chatRoomCreateDate"]
+                            .toString()
+                            .split('-')[0]
+                            .toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                },
+              )
+            : Center(child: CircularProgressIndicator());
+      },
+    );
+  }
 
   getUserData() async {
     DataBase dataBase = DataBase();

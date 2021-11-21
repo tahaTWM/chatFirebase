@@ -118,8 +118,10 @@ class _SiginScreenState extends State<SiginScreen> {
 
   signIn() => api.singIn(emailController.text, passwordController.text).then(
       (value) => value
-          ? Navigator.push(context,
-              MaterialPageRoute(builder: (context) => ConversionScreen()))
+          ? Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => ConversionScreen()),
+              (route) => false)
           : print("login error"));
 
   signInWithGoogle() => api.signInWithGoogle(context);

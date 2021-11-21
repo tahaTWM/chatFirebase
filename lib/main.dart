@@ -1,9 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import './view/auth/signin.dart';
 import 'package:flutter/material.dart';
-
 import 'view/chat_view/conversionScreen.dart';
 
 void main() async {
