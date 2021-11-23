@@ -1,7 +1,6 @@
 // ignore_for_file: unused_field, avoid_print, missing_return, curly_braces_in_flow_control_structures, file_names, unused_local_variable
 
-import 'dart:convert';
-import 'dart:developer';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../main.dart';
 import '../view/chat_view/conversionScreen.dart';
@@ -14,14 +13,18 @@ import 'databaseFunctions.dart';
 
 class Api {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  DataBase dataBase = DataBase();
   Future<bool> singIn(String email, String password) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     try {
       final result = await _auth.signInWithEmailAndPassword(
           email: email, password: password);
-      await pref.setString("uid", result.user.uid);
+
       await pref.setString("username", result.user.displayName);
+      if (pref.getString('uid') == null)
+        await pref.setString("uid", result.user.uid.toString());
+      
+
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -56,7 +59,7 @@ class Api {
         print('result is null');
       } else {
         SharedPreferences pref = await SharedPreferences.getInstance();
-        await pref.setString("uid", googleSignInAccount.id.toString());
+        await pref.setString("uid", result.user.uid.toString());
         await pref.setString("username", googleSignInAccount.displayName);
 
         Map<String, String> userData = {
@@ -76,11 +79,13 @@ class Api {
 
   Future<bool> singUp(
       String fullname, String photoURL, String email, String password) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
     try {
       final result = await _auth.createUserWithEmailAndPassword(
           email: email, password: password);
       await _auth.currentUser.updateDisplayName(fullname);
       await _auth.currentUser.updatePhotoURL(photoURL);
+      await pref.setString("uid", result.user.uid);
       if (result != null) return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -102,15 +107,15 @@ class Api {
     }
   }
 
-  signOut(BuildContext context) async {
+  Future signOut(BuildContext context) async {
     try {
-      SharedPreferences pref = await SharedPreferences.getInstance();
-      pref.get('uid') != null ? pref.remove('uid') : null;
       await _auth.signOut();
       Navigator.pushAndRemoveUntil(context,
           MaterialPageRoute(builder: (cotext) => MyApp()), (route) => false);
+      return true;
     } catch (e) {
       print(e.toString());
+      return false;
     }
   }
 }

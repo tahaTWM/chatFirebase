@@ -1,6 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, deprecated_member_use, avoid_print
 
 import 'package:chat_app/view/chat_view/conversionScreen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../../api/authFunctions.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,14 @@ class _SiginScreenState extends State<SiginScreen> {
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   Api api = Api();
+  bool remimberMe = false;
+
+  @override
+  void initState() {
+    checkermimberME();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,13 +50,27 @@ class _SiginScreenState extends State<SiginScreen> {
               decoration: textFieldInputDecoration("Password"),
               style: TextStyle(color: Colors.white),
               obscureText: true,
+              onFieldSubmitted: (_) => signIn(),
             ),
             SizedBox(height: 20),
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 20),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: remimberMe,
+                        onChanged: (value) {
+                          setState(() {
+                            remimberMe = value;
+                          });
+                        },
+                      ),
+                      Text('remember me', style: TextStyle(color: Colors.white))
+                    ],
+                  ),
                   InkWell(
                       onTap: () => forgetPassword(),
                       child: Text(
@@ -116,12 +139,16 @@ class _SiginScreenState extends State<SiginScreen> {
         borderRadius: new BorderRadius.circular(30),
       );
 
-  signIn() => api.singIn(emailController.text, passwordController.text).then(
-      (value) => value
-          ? Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => ConversionScreen()),
-              (route) => false)
+  signIn() => api
+      .singIn(emailController.text, passwordController.text)
+      .then((value) => value
+          ? {
+              checkermimberME(),
+              Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (context) => ConversionScreen()),
+                  (route) => false),
+            }
           : print("login error"));
 
   signInWithGoogle() => api.signInWithGoogle(context);
@@ -131,4 +158,32 @@ class _SiginScreenState extends State<SiginScreen> {
 
   registerNow() => Navigator.push(
       context, MaterialPageRoute(builder: (context) => SignUp()));
+
+  checkermimberME() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    if (remimberMe == true &&
+        emailController.text.isNotEmpty &&
+        emailController.text.contains('@')) {
+      await pref.setString('email', emailController.text);
+      await pref.setBool('checkEmail', remimberMe);
+      print('save email');
+    } else if (remimberMe == false &&
+        emailController.text.isNotEmpty &&
+        emailController.text.contains('@')) {
+      if (pref.getString('email') != null &&
+          pref.getBool('checkEmail') != null) {
+        pref.remove('email');
+        pref.remove('checkEmail');
+      }
+    } else if (pref.getString('email') != null &&
+        pref.getBool('checkEmail') != null) {
+      setState(() {
+        emailController.text = pref.getString('email');
+        remimberMe = pref.getBool('checkEmail');
+      });
+      print('email is fetched');
+    } else {
+      print("don't have any email");
+    }
+  }
 }

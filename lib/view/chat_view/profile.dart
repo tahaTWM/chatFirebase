@@ -1,9 +1,10 @@
-// ignore_for_file: prefer_const_constructors, prefer_typing_uninitialized_variables
+// ignore_for_file: prefer_const_constructors, prefer_typing_uninitialized_variables, avoid_function_literals_in_foreach_calls, avoid_print, missing_required_param, deprecated_member_use
 
 import 'package:chat_app/api/authFunctions.dart';
 import 'package:chat_app/view/auth/forgetPassword.dart';
 import 'package:flutter/material.dart';
 import 'package:chat_app/api/databaseFunctions.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Profile extends StatefulWidget {
   @override
@@ -15,7 +16,7 @@ class _ProfileState extends State<Profile> {
   var name, email, photoUrl;
   @override
   void initState() {
-    searchMethod();
+    getData();
     super.initState();
   }
 
@@ -27,12 +28,27 @@ class _ProfileState extends State<Profile> {
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
         title: Text("Profile"),
         actions: [
-          IconButton(
-            onPressed: () {
+          FlatButton.icon(
+            onPressed: () async {
+              SharedPreferences _pref = await SharedPreferences.getInstance();
+              // List keys = _pref.getKeys().toList();
+              // keys.forEach((element) {
+              //   print(
+              //       element.toString() + " : " + _pref.get(element).toString());
+              // });
               Api api = Api();
-              api.signOut(context);
+              await api.signOut(context).then((value) {
+                if (value) {
+                  _pref.remove('username');
+                  _pref.remove('uid');
+                }
+              });
             },
-            icon: Icon(Icons.logout_rounded),
+            icon: Icon(Icons.logout_rounded, color: Colors.white),
+            label: Text(
+              "Sign out",
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -100,7 +116,7 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-  searchMethod() async {
+  getData() async {
     DataBase dataBase = DataBase();
     await dataBase.getUserData().then((value) {
       setState(() {

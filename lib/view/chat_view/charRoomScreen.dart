@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, use_key_in_widget_constructors, prefer_const_constructors, avoid_print, dead_code, prefer_typing_uninitialized_variables, non_constant_identifier_names
+// ignore_for_file: file_names, use_key_in_widget_constructors, prefer_const_constructors, avoid_print, dead_code, prefer_typing_uninitialized_variables, non_constant_identifier_names, curly_braces_in_flow_control_structures, sized_box_for_whitespace
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
@@ -9,7 +9,8 @@ import 'package:flutter/material.dart';
 
 class ChatRoomScreen extends StatefulWidget {
   String chatRoomId;
-  ChatRoomScreen(this.chatRoomId);
+  String resverID;
+  ChatRoomScreen(this.chatRoomId, this.resverID);
 
   @override
   _ChatRoomScreenState createState() => _ChatRoomScreenState();
@@ -22,15 +23,13 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
   DataBase dataBase = DataBase();
   TextEditingController chatingController = TextEditingController();
   Stream<QuerySnapshot> querySnapshot;
-
+  ScrollController _scrollController = ScrollController();
   String username;
 
-  final _controller = ScrollController();
   @override
   void initState() {
     getUserData();
     getChatMethod();
-
     super.initState();
   }
 
@@ -49,29 +48,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
               children: [
                 userData == null
                     ? Icon(Icons.account_circle_rounded, color: Colors.white)
-                    : GestureDetector(
-                        onTap: () {
-                          _controller.animateTo(
-                            _controller.position.maxScrollExtent,
-                            duration: Duration(seconds: 1),
-                            curve: Curves.fastOutSlowIn,
-                          );
-                        },
-                        child: Container(
-                          width: 30,
-                          height: 30,
-                          padding: EdgeInsets.all(1.2),
-                          decoration: BoxDecoration(
-                            color: Colors.green,
-                            shape: BoxShape.circle,
-                          ),
-                          child: ClipRRect(
-                              borderRadius: BorderRadius.circular(500),
-                              child: Image.network(
-                                photoUrl,
-                                fit: BoxFit.cover,
-                              )),
+                    : Container(
+                        width: 30,
+                        height: 30,
+                        padding: EdgeInsets.all(1.2),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          shape: BoxShape.circle,
                         ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(500),
+                            child: Image.network(
+                              photoUrl,
+                              fit: BoxFit.cover,
+                            )),
                       ),
                 SizedBox(width: 6),
                 userData == null
@@ -84,23 +74,20 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       ),
       body: Column(
         children: [
-          querySnapshot == null
-              ? Center(
-                  child: Text("No Chat", style: TextStyle(color: Colors.white)))
-              : chatWidget(),
+          chatWidget(),
           Expanded(
             flex: 1,
             child: Container(
               padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
               alignment: Alignment.bottomCenter,
               child: TextFormField(
-                onTap: () {},
                 controller: chatingController,
                 decoration: InputDecoration(
                   hintText: "typing...",
                   suffixIcon: IconButton(
                     onPressed: () {
-                      sendMessage().then((value) {
+                      sendMessage(widget.resverID).then((value) {
+                        jump();
                         setState(() {
                           chatingController.clear();
                         });
@@ -130,6 +117,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
 
   getUserData() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
+
     setState(() {
       username = pref.getString("username");
     });
@@ -142,7 +130,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
-  Future sendMessage() async {
+  Future sendMessage(resverID) async {
     var time = DateFormat('MMM d, yyyy');
     var day = DateFormat('EEEE, hh:mm a');
 
@@ -157,7 +145,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       "data": dayNow,
       "timeAsIdForSorting": DateTime.now().millisecondsSinceEpoch
     };
-    await dataBase.sendMessage(widget.chatRoomId, message);
+    await dataBase.sendMessage(widget.chatRoomId, message, resverID);
   }
 
   getChatMethod() async {
@@ -172,13 +160,28 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     return StreamBuilder(
       stream: querySnapshot,
       builder: (context, snapshot) {
+        if (snapshot.hasData)
+          Future.delayed(Duration(milliseconds: 300), () => jump());
         return snapshot.hasData
             ? Expanded(
                 flex: 8,
                 child: ListView.builder(
-                  controller: _controller,
-                  itemCount: snapshot.data.docs.length,
+                  shrinkWrap: true,
+                  controller: _scrollController,
+                  itemCount: snapshot.data.docs.length + 1,
                   itemBuilder: (BuildContext context, int index) {
+                    if (snapshot.data.docs.length == 0)
+                      return Container(
+                          height: MediaQuery.of(context).size.height * 0.7,
+                          child: Center(
+                              child: Text("You didn't\ndo any Chat yet",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 23,
+                                      fontWeight: FontWeight.w500))));
+                    if (index == snapshot.data.docs.length)
+                      return Container(height: 10);
                     var data = snapshot.data.docs[index].data() as Map;
                     return username == data["sendBy"]
                         ? GestureDetector(
@@ -220,7 +223,8 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                             bottomLeft: Radius.circular(40))),
                                     child: Text(data["message"],
                                         style: TextStyle(
-                                            color: Colors.white, fontSize: 22)),
+                                            color: Colors.white, fontSize: 22),
+                                        maxLines: 5),
                                   ),
                                 ],
                               ),
@@ -247,15 +251,35 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                 SizedBox(width: 10),
                                 Text(data["data"],
                                     style: TextStyle(
-                                        color: Colors.grey[600], fontSize: 13))
+                                        color: Colors.grey[600], fontSize: 13),
+                                    maxLines: 5)
                               ],
                             ),
                           );
                   },
                 ),
               )
-            : Center(child: CircularProgressIndicator());
+            : Expanded(
+                flex: 8,
+                child: Center(
+                    child: Text(
+                  "You didn't\ndo any Chat yet",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w500,
+                  ),
+                )),
+              );
       },
     );
+  }
+
+  jump() async {
+    await _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: Duration(milliseconds: 300),
+        curve: Curves.easeOut);
   }
 }

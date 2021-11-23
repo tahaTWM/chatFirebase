@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors, deprecated_member_use, avoid_print, unused_local_variable, curly_braces_in_flow_control_structures
+// ignore_for_file: prefer_const_constructors, deprecated_member_use, avoid_print, unused_local_variable, curly_braces_in_flow_control_structures, prefer_typing_uninitialized_variables
 
 import 'package:chat_app/api/databaseFunctions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -20,6 +20,7 @@ class _SearchState extends State<Search> {
   var userData;
   var name;
   var photoUrl;
+
   @override
   void initState() {
     getUserData();
@@ -43,7 +44,7 @@ class _SearchState extends State<Search> {
                     : Container(
                         width: 30,
                         height: 30,
-                        padding: EdgeInsets.all(5),
+                        padding: EdgeInsets.all(1.2),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
@@ -97,9 +98,11 @@ class _SearchState extends State<Search> {
               //     searchMethod();
               //   });
               // },
-              onFieldSubmitted: (value) {
-                searchMethod("name");
-                if (querySnapshot.size == 0) searchMethod('email');
+              onFieldSubmitted: (value) async {
+                if (searchController.text.contains('@'))
+                  await searchMethod("email");
+                else
+                  await searchMethod("name");
               },
               cursorColor: Colors.white,
             ),
@@ -163,7 +166,7 @@ class _SearchState extends State<Search> {
             leading: Container(
               width: 60,
               height: 60,
-              padding: EdgeInsets.all(1.2),
+              padding: EdgeInsets.all(2),
               decoration: BoxDecoration(
                   color: Colors.white,
                   shape: BoxShape.circle,
@@ -198,20 +201,24 @@ class _SearchState extends State<Search> {
                   users.add(pref.getString("username"));
                   users.add(data["name"]);
 
-                  final charRoomId =
+                  String charRoomId =
                       "${pref.getString("username")}-${data["name"]}";
+
+                  String charRoomIdRev =
+                      "${data["name"]}-${pref.getString("username")}";
 
                   Map<String, dynamic> chatRoomMap = {
                     "chatRoomCreateDate": "$timeNow-$dayNow",
                     "charRoomId": charRoomId,
                     "users": users
                   };
+                  var userID = await FirebaseFirestore.instance
+                      .collection("Users")
+                      .where("name", isEqualTo: data["name"])
+                      .get();
+                  var resverID = userID.docs[0].id;
 
-                  await dataBase.createChatRoom(charRoomId, chatRoomMap);
-                  Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                          builder: (context) => ChatRoomScreen(charRoomId)));
+                  createRoom(charRoomId, chatRoomMap, resverID);
                 },
                 child: Text("Message", style: TextStyle(color: Colors.white)),
                 shape: RoundedRectangleBorder(
@@ -233,5 +240,17 @@ class _SearchState extends State<Search> {
         photoUrl = userData["photoUrl"];
       });
     });
+  }
+
+  createRoom(charRoomId, chatRoomMap, resverID) async {
+    // QuerySnapshot result = await dataBase.checkIfChatRoom(charRoomId);
+    // QuerySnapshot resul2 = await dataBase.checkIfChatRoom(chatRoomIdRversd);
+    // if (result.size == 0 && resul2.size == 0) {
+    await dataBase.createChatRoom(chatRoomMap);
+    Navigator.push(
+        context,
+        MaterialPageRoute(
+            builder: (context) => ChatRoomScreen(charRoomId, resverID)));
+    // }
   }
 }
