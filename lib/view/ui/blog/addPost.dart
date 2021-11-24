@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:chat_app/view/ui/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -21,6 +22,7 @@ class _AddPostState extends State<AddPost> {
   TextEditingController descController = TextEditingController();
   ImagePicker imagePicker = ImagePicker();
   bool uploading = false;
+  BlogApis api = BlogApis();
 
   @override
   Widget build(BuildContext context) {
@@ -104,21 +106,31 @@ class _AddPostState extends State<AddPost> {
     });
   }
 
-  uploadImage() {
+  uploadImage() async {
     setState(() {
       uploading = true;
     });
-    String imageName = DateTime.now().microsecondsSinceEpoch.toString();
-    final Reference storageFilename =
-        FirebaseStorage.instance.ref().child("BlogIamges").child(imageName);
-    final UploadTask uploadTask = storageFilename.putFile(_image);
-    uploadTask.then((TaskSnapshot taskSnapshot) {
-      taskSnapshot.ref.getDownloadURL().then((imageURL) {
-        uploadImageToFirebase(imageURL);
+    if (_image == null) {
+      await picIamge();
+    }
+    if (titleController.text.isNotEmpty && descController.text.isNotEmpty) {
+      String imageName = DateTime.now().microsecondsSinceEpoch.toString();
+      final Reference storageFilename =
+          FirebaseStorage.instance.ref().child("BlogIamges").child(imageName);
+      final UploadTask uploadTask = storageFilename.putFile(_image);
+      uploadTask.then((TaskSnapshot taskSnapshot) {
+        taskSnapshot.ref.getDownloadURL().then((imageURL) {
+          uploadImageToFirebase(imageURL);
+        });
+      }).catchError((e) {
+        print(e.toString());
       });
-    }).catchError((e) {
-      print(e.toString());
-    });
+    } else {
+      api.useToast("title or Description is Empty");
+      setState(() {
+        uploading = false;
+      });
+    }
   }
 
   uploadImageToFirebase(String imagePath) {
@@ -150,6 +162,8 @@ class _AddPostState extends State<AddPost> {
       }).catchError((onError) {
         print(onError.toString());
       });
+    } else {
+      api.useToast("error in Entering Data");
     }
   }
 }

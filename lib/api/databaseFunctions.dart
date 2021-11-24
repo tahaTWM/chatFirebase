@@ -1,11 +1,12 @@
-// ignore_for_file: file_names, avoid_print, invalid_return_type_for_catch_error
+// ignore_for_file: file_names, avoid_print, invalid_return_type_for_catch_error, curly_braces_in_flow_control_structures
 
+import 'package:chat_app/view/ui/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DataBase {
-  //worked
+  BlogApis api = BlogApis();
   Future getUsersByUserNames(String userName) async {
     return await FirebaseFirestore.instance
         .collection('Users')
@@ -33,19 +34,28 @@ class DataBase {
 
   Future sendMessage(String chatRoomID, messageMap, String resverID) async {
     SharedPreferences pref = await SharedPreferences.getInstance();
-    FirebaseFirestore.instance
-        .collection('Users')
-        .doc(pref.getString('uid'))
-        .collection(chatRoomID)
-        .add(messageMap)
-        .catchError((onError) => print(onError.toString()));
+    print(chatRoomID);
+    print(resverID);
+    print(pref.getString('uid'));
 
-    FirebaseFirestore.instance
-        .collection('Users')
-        .doc(resverID)
-        .collection(chatRoomID)
-        .add(messageMap)
-        .catchError((onError) => print(onError.toString()));
+    if (resverID.length > 0 &&
+        messageMap != null &&
+        pref.getString('uid') != null) {
+      FirebaseFirestore.instance
+          .collection('Users')
+          .doc(pref.getString('uid'))
+          .collection(chatRoomID)
+          .add(messageMap)
+          .catchError((onError) => print(onError.toString()));
+
+      FirebaseFirestore.instance
+          .collection('Users')
+          .doc(resverID)
+          .collection(chatRoomID)
+          .add(messageMap)
+          .catchError((onError) => print(onError.toString()));
+    } else
+      api.useToast("error in resverID");
   }
 
   setUserData(userMap) async {

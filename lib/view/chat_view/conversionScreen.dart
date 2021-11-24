@@ -21,6 +21,8 @@ class _ConversionScreenState extends State<ConversionScreen> {
 
   String resverName;
   String resverPhotoUrl;
+
+  bool found = false;
   @override
   void initState() {
     getSenderData();
@@ -67,12 +69,14 @@ class _ConversionScreenState extends State<ConversionScreen> {
         ],
       ),
       body: chatsRoomsWidget(),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Color.fromRGBO(49, 110, 125, 1),
-        child: Icon(Icons.search),
-        onPressed: () => Navigator.push(
-            context, MaterialPageRoute(builder: (context) => Search())),
-      ),
+      floatingActionButton: !found
+          ? FloatingActionButton(
+              backgroundColor: Color.fromRGBO(49, 110, 125, 1),
+              child: Icon(Icons.search),
+              onPressed: () => Navigator.push(
+                  context, MaterialPageRoute(builder: (context) => Search())),
+            )
+          : null,
     );
   }
 
@@ -81,9 +85,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
     DataBase dataBase = DataBase();
     await dataBase.getChatRooms(pref.getString('username')).then(
       (value) {
-        setState(() {
-          querySnapshot = value;
-        });
+        querySnapshot = value;
       },
     );
   }
@@ -110,9 +112,8 @@ class _ConversionScreenState extends State<ConversionScreen> {
                       ),
                     );
                   }
-                  final data = snapshot.data.docs[index].data() as Map;
-                  // getReseverData(data['charRoomId'].toString().split('-')[1]);
 
+                  final data = snapshot.data.docs[index].data() as Map;
                   return name == data['charRoomId'].toString().split('-')[0]
                       ? Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 10),
@@ -125,20 +126,8 @@ class _ConversionScreenState extends State<ConversionScreen> {
                                       builder: (context) => ChatRoomScreen(
                                           data["charRoomId"], "")));
                             },
-                            onLongPress: () async {
-                              var doc_ref = await FirebaseFirestore.instance
-                                  .collection("Chats")
-                                  .where("charRoomId",
-                                      isEqualTo: data["charRoomId"])
-                                  .get();
-                              var id = doc_ref.docs[0].id;
-                              print(id);
-                              FirebaseFirestore.instance
-                                  .collection('Chats')
-                                  .doc(id)
-                                  .delete();
-                              // taha-twm
-                            },
+                            onLongPress: () => deleteChat(data["charRoomId"],
+                                snapshot.data.docs[index].data()),
                             leading: Container(
                               width: 55,
                               height: 55,
@@ -218,6 +207,58 @@ class _ConversionScreenState extends State<ConversionScreen> {
     setState(() {
       resverName = resverInfo2["name"];
       resverPhotoUrl = resverInfo2["profileImage"];
+    });
+  }
+
+  deleteChat(String charRoomId, var index) async {
+    print(index);
+    SharedPreferences pref = await SharedPreferences.getInstance();
+
+    var user1 = await FirebaseFirestore.instance
+        .collection("Users")
+        .where("name", isEqualTo: charRoomId.split('-')[0])
+        .get();
+    var user2 = await FirebaseFirestore.instance
+        .collection("Users")
+        .where("name", isEqualTo: charRoomId.split('-')[1])
+        .get();
+
+    var chatConversion = await FirebaseFirestore.instance
+        .collection("Chats")
+        .where("charRoomId", isEqualTo: charRoomId)
+        .get();
+
+    var chatConv = chatConversion.docs[0].id;
+
+    var user11 = user1.docs[0].id;
+
+    var user22 = user2.docs[0].id;
+
+    print(user11);
+    print(user22);
+    print(chatConv);
+
+    // FirebaseFirestore.instance.collection('Chats').doc(chatConv).delete();
+
+    FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user11)
+        .collection(charRoomId)
+        .get()
+        .then((snapshot) {
+      for (DocumentSnapshot ds in snapshot.docs) {
+        ds.reference.delete();
+      }
+    });
+    FirebaseFirestore.instance
+        .collection('Users')
+        .doc(user22)
+        .collection(charRoomId)
+        .get()
+        .then((snapshot) {
+      for (DocumentSnapshot ds in snapshot.docs) {
+        ds.reference.delete();
+      }
     });
   }
 }

@@ -23,7 +23,6 @@ class Api {
       await pref.setString("username", result.user.displayName);
       if (pref.getString('uid') == null)
         await pref.setString("uid", result.user.uid.toString());
-      
 
       return true;
     } on FirebaseAuthException catch (e) {
@@ -85,7 +84,6 @@ class Api {
           email: email, password: password);
       await _auth.currentUser.updateDisplayName(fullname);
       await _auth.currentUser.updatePhotoURL(photoURL);
-      await pref.setString("uid", result.user.uid);
       if (result != null) return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
