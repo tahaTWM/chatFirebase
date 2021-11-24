@@ -1,8 +1,7 @@
 // ignore_for_file: prefer_const_literals_to_create_immutables, prefer_const_constructors, deprecated_member_use, avoid_print
 
-import 'package:chat_app/view/chat_view/conversionScreen.dart';
+import 'package:chat_app/view/ui/blog/displayPost.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
 import '../../api/authFunctions.dart';
 import 'package:flutter/material.dart';
 
@@ -146,7 +145,7 @@ class _SiginScreenState extends State<SiginScreen> {
               checkermimberME(),
               Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(builder: (context) => ConversionScreen()),
+                  MaterialPageRoute(builder: (context) => DisplayPost()),
                   (route) => false),
             }
           : print("login error"));

@@ -18,7 +18,10 @@ dependencies:
   firebase_storage: null
   flutter:
     sdk: flutter
-  google_sign_in: 
+  flutter_speed_dial: ^4.6.6
+  fluttertoast: ^8.0.8
+  font_awesome_flutter: ^9.2.0
+  google_sign_in: null
   image_picker: ^0.8.4+4
   intl: null
   shared_preferences: null

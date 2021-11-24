@@ -1,8 +1,8 @@
+import 'package:chat_app/view/ui/blog/displayPost.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './view/auth/signin.dart';
 import 'package:flutter/material.dart';
-import 'view/chat_view/conversionScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: uid == null ? SiginScreen() : ConversionScreen(),
+      home: uid == null ? SiginScreen() : DisplayPost(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         visualDensity: VisualDensity.adaptivePlatformDensity,
