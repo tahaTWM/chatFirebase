@@ -72,7 +72,6 @@ class _DisplayPostState extends State<DisplayPost> {
                         itemBuilder: (BuildContext context, int index) {
                           Map<String, dynamic> body =
                               snapshot.data.docs[index].data() as Map;
-
                           return Container(
                             margin: EdgeInsets.all(10),
                             padding: EdgeInsets.all(10),
@@ -238,11 +237,7 @@ class _DisplayPostState extends State<DisplayPost> {
                           );
                         },
                       )
-                    : Center(
-                        child: Text(
-                        "No Post Add yet1",
-                        style: TextStyle(color: Colors.white, fontSize: 25),
-                      ));
+                    : Center(child: CircularProgressIndicator());
               }),
         ),
       ),
@@ -263,7 +258,9 @@ class _DisplayPostState extends State<DisplayPost> {
 
   getData() async {
     await blogApis.dataFetch().then((value) {
-      _streamData = value;
+      setState(() {
+        _streamData = value;
+      });
     });
   }
 }

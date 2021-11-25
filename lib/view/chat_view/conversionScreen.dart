@@ -114,61 +114,63 @@ class _ConversionScreenState extends State<ConversionScreen> {
                   }
 
                   final data = snapshot.data.docs[index].data() as Map;
-                  return name == data['charRoomId'].toString().split('-')[0]
-                      ? Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            onTap: () {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => ChatRoomScreen(
-                                          data["charRoomId"], "")));
-                            },
-                            onLongPress: () => deleteChat(data["charRoomId"],
-                                snapshot.data.docs[index].data()),
-                            leading: Container(
-                              width: 55,
-                              height: 55,
-                              padding: EdgeInsets.all(1.2),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                shape: BoxShape.circle,
-                              ),
-                              child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(500),
-                                  child: Image.network(
-                                    photoUrl,
-                                    fit: BoxFit.cover,
-                                  )),
-                            ),
-                            title: Text(
-                              data["users"][1],
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            subtitle: Text(
-                              data["chatRoomCreateDate"]
-                                  .toString()
-                                  .split('-')[1]
-                                  .toString(),
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            trailing: Text(
-                              data["chatRoomCreateDate"]
-                                  .toString()
-                                  .split('-')[0]
-                                  .toString(),
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 15,
-                              ),
-                              textAlign: TextAlign.center,
-                            ),
-                          ),
-                        )
-                      : Container();
+                  return
+                      // name == data['charRoomId'].toString().split('-')[0]
+                      //     ?
+                      Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      onTap: () {
+                        Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ChatRoomScreen(data["charRoomId"], "")));
+                      },
+                      onLongPress: () => deleteChat(
+                          data["charRoomId"], snapshot.data.docs[index].data()),
+                      leading: Container(
+                        width: 55,
+                        height: 55,
+                        padding: EdgeInsets.all(1.2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                        child: ClipRRect(
+                            borderRadius: BorderRadius.circular(500),
+                            child: Image.network(
+                              photoUrl,
+                              fit: BoxFit.cover,
+                            )),
+                      ),
+                      title: Text(
+                        data["users"][1],
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      subtitle: Text(
+                        data["chatRoomCreateDate"]
+                            .toString()
+                            .split('-')[1]
+                            .toString(),
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      trailing: Text(
+                        data["chatRoomCreateDate"]
+                            .toString()
+                            .split('-')[0]
+                            .toString(),
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 15,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                  // : Container();
                 },
               )
             : Center(
@@ -238,7 +240,7 @@ class _ConversionScreenState extends State<ConversionScreen> {
     print(user22);
     print(chatConv);
 
-    // FirebaseFirestore.instance.collection('Chats').doc(chatConv).delete();
+    FirebaseFirestore.instance.collection('Chats').doc(chatConv).delete();
 
     FirebaseFirestore.instance
         .collection('Users')
