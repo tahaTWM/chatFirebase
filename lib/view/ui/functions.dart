@@ -9,6 +9,7 @@ class BlogApis {
         .collection("Posts")
         .doc(FirebaseAuth.instance.currentUser.uid)
         .collection('posts')
+        .orderBy('orderID', descending: true)
         .snapshots();
   }
 

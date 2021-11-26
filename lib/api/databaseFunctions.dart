@@ -1,4 +1,4 @@
-// ignore_for_file: file_names, avoid_print, invalid_return_type_for_catch_error, curly_braces_in_flow_control_structures
+// ignore_for_file: file_names, avoid_print, invalid_return_type_for_catch_error, curly_braces_in_flow_control_structures, prefer_is_empty
 
 import 'package:chat_app/view/ui/functions.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -38,19 +38,17 @@ class DataBase {
     print(resverID);
     print(pref.getString('uid'));
 
+    var chatLocation = await FirebaseFirestore.instance
+        .collection('Chats')
+        .where("charRoomId", isEqualTo: chatRoomID)
+        .get();
+
     if (resverID.length > 0 &&
         messageMap != null &&
         pref.getString('uid') != null) {
       FirebaseFirestore.instance
-          .collection('Users')
-          .doc(pref.getString('uid'))
-          .collection(chatRoomID)
-          .add(messageMap)
-          .catchError((onError) => print(onError.toString()));
-
-      FirebaseFirestore.instance
-          .collection('Users')
-          .doc(resverID)
+          .collection('Chats')
+          .doc(chatLocation.docs[0].id)
           .collection(chatRoomID)
           .add(messageMap)
           .catchError((onError) => print(onError.toString()));
@@ -86,18 +84,24 @@ class DataBase {
     return mapRow;
   }
 
-  Future getChatRooms(String username) async {
+  Future getChatRooms() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+
     return FirebaseFirestore.instance
         .collection("Chats")
-        .where("users", arrayContains: username)
+        .where("users", arrayContains: pref.getString('username'))
         .snapshots();
   }
 
   Future getChats(String chatRoomID) async {
+    var chatLocation = await FirebaseFirestore.instance
+        .collection('Chats')
+        .where("charRoomId", isEqualTo: chatRoomID)
+        .get();
     SharedPreferences pref = await SharedPreferences.getInstance();
     return FirebaseFirestore.instance
-        .collection("Users")
-        .doc(pref.getString('uid'))
+        .collection("Chats")
+        .doc(chatLocation.docs[0].id)
         .collection(chatRoomID)
         .orderBy("timeAsIdForSorting")
         .snapshots();

@@ -216,6 +216,7 @@ class _SearchState extends State<Search> {
                       .collection("Users")
                       .where("name", isEqualTo: data["name"])
                       .get();
+                  print(data["name"]);
                   var resverID = userID.docs[0].id;
 
                   createRoom(charRoomId, chatRoomMap, resverID);

@@ -154,6 +154,7 @@ class _AddPostState extends State<AddPost> {
         'time': timeNow,
         'date': dayNow,
         'favorite': false,
+        'orderID': DateTime.now().millisecondsSinceEpoch,
       }).then((value) {
         setState(() {
           uploading = false;

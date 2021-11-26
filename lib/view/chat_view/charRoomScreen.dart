@@ -86,7 +86,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                   hintText: "typing...",
                   suffixIcon: IconButton(
                     onPressed: () {
-                      sendMessage(widget.resverID).then((value) {
+                      sendMessage().then((value) {
                         jump();
                         setState(() {
                           chatingController.clear();
@@ -130,7 +130,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     });
   }
 
-  Future sendMessage(resverID) async {
+  Future sendMessage() async {
     var time = DateFormat('MMM d, yyyy');
     var day = DateFormat('EEEE, hh:mm a');
 
@@ -138,6 +138,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
     String dayNow = day.format(DateTime.now()).toString();
 
     SharedPreferences pref = await SharedPreferences.getInstance();
+    print(pref.getString("username"));
     Map<String, dynamic> message = {
       "message": chatingController.text,
       "sendBy": pref.getString("username"),
@@ -145,7 +146,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       "data": dayNow,
       "timeAsIdForSorting": DateTime.now().millisecondsSinceEpoch
     };
-    await dataBase.sendMessage(widget.chatRoomId, message, resverID);
+    await dataBase.sendMessage(widget.chatRoomId, message, widget.resverID);
   }
 
   getChatMethod() async {
