@@ -29,7 +29,7 @@ class _DisplayPostState extends State<DisplayPost> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(54, 57, 63, 1),
+      // backgroundColor: Color.fromRGBO(54, 57, 63, 1),
       appBar: AppBar(
           title: Text(
             "Blog App",
@@ -72,168 +72,169 @@ class _DisplayPostState extends State<DisplayPost> {
                         itemBuilder: (BuildContext context, int index) {
                           Map<String, dynamic> body =
                               snapshot.data.docs[index].data() as Map;
-                          return Container(
-                            margin: EdgeInsets.all(10),
-                            padding: EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(20),
-                              color: Colors.blueGrey[200],
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        vertical: 2, horizontal: 5),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Blog Title: ",
-                                              style: TextStyle(
-                                                  fontWeight: FontWeight.bold),
-                                            ),
-                                            Text(
-                                              body["title"],
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ],
-                                        ),
-                                        PopupMenuButton(
-                                          shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                  Radius.circular(15.0))),
-                                          icon: Icon(
-                                            Icons.more_vert,
-                                            size: 25,
-                                            // color:  Color.fromRGBO(132, 132, 132, 1),
-                                          ),
-                                          itemBuilder: (context) => [
-                                            PopupMenuItem(
-                                              value: 1,
-                                              child: Row(
-                                                children: [
-                                                  Icon(
-                                                    Icons.delete,
-                                                    size: 25,
-                                                  ),
-                                                  SizedBox(width: 12),
-                                                  Text(
-                                                    "Delete",
-                                                    style: TextStyle(
-                                                      fontSize: 18,
-                                                      fontFamily: "RubicB",
-                                                    ),
-                                                  )
-                                                ],
-                                              ),
-                                            ),
-                                          ],
-                                          onSelected: (item) {
-                                            switch (item) {
-                                              case 1:
-                                                {
-                                                  var id = snapshot
-                                                      .data.docs[index].id;
-                                                  FirebaseFirestore.instance
-                                                      .collection("Posts")
-                                                      .doc(FirebaseAuth.instance
-                                                          .currentUser.uid)
-                                                      .collection("posts")
-                                                      .doc(id)
-                                                      .delete();
-                                                }
-                                                break;
-                                            }
-                                          },
-                                        ),
-                                      ],
-                                    )),
-                                Center(
-                                  child: ClipRRect(
-                                    borderRadius: BorderRadius.circular(30),
-                                    child: Image.network(body["imageUrl"]),
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              ListTile(
+                                contentPadding:
+                                    EdgeInsets.symmetric(horizontal: 10),
+                                leading: Container(
+                                  width: 44,
+                                  height: 44,
+                                  padding: EdgeInsets.all(1.4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    shape: BoxShape.circle,
                                   ),
+                                  child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(500),
+                                      child: Image.network(
+                                        body['uploaderInfo']['profileImage'],
+                                        fit: BoxFit.cover,
+                                      )),
                                 ),
-                                SizedBox(height: 10),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      flex: 4,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                            vertical: 10, horizontal: 5),
-                                        child: Text.rich(
-                                          TextSpan(
-                                            children: <InlineSpan>[
-                                              TextSpan(
-                                                text: 'Blog Description: ',
-                                                style: TextStyle(
-                                                  fontSize: 17,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text: body["desc"],
-                                              ),
-                                            ],
+                                title: Text(body['uploaderInfo']['name']),
+                                subtitle: Text(
+                                    body["date"] + ' - ' + body["time"],
+                                    overflow: TextOverflow.ellipsis),
+                                trailing: PopupMenuButton(
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.all(
+                                          Radius.circular(15.0))),
+                                  icon: Icon(
+                                    Icons.more_vert,
+                                    size: 20,
+                                    // color:  Color.fromRGBO(132, 132, 132, 1),
+                                  ),
+                                  itemBuilder: (context) => [
+                                    PopupMenuItem(
+                                      value: 1,
+                                      child: Row(
+                                        children: [
+                                          Icon(
+                                            Icons.delete,
+                                            size: 25,
                                           ),
-                                          maxLines: 3,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
+                                          SizedBox(width: 12),
+                                          Text(
+                                            "Delete",
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontFamily: "RubicB",
+                                            ),
+                                          )
+                                        ],
                                       ),
                                     ),
-                                    Expanded(
-                                      flex: 1,
-                                      child: Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 10),
-                                        child: IconButton(
-                                          icon: body["favorite"]
-                                              ? Icon(
-                                                  Icons.favorite,
-                                                  color: Colors.red,
-                                                )
-                                              : Icon(Icons.favorite_border),
-                                          onPressed: () {
-                                            var id =
-                                                snapshot.data.docs[index].id;
-                                            FirebaseFirestore.instance
-                                                .collection("Posts")
-                                                .doc(FirebaseAuth
-                                                    .instance.currentUser.uid)
-                                                .collection("posts")
-                                                .doc(id)
-                                                .update({
-                                              "favorite": !body["favorite"]
-                                            }).catchError((onError) {
-                                              print(onError.toString());
-                                            });
-                                          },
-                                        ),
-                                      ),
-                                    )
                                   ],
+                                  onSelected: (item) {
+                                    switch (item) {
+                                      case 1:
+                                        {
+                                          var id = snapshot.data.docs[index].id;
+                                          FirebaseFirestore.instance
+                                              .collection("Posts")
+                                              .doc(id)
+                                              .delete();
+                                          // var id = snapshot.data.docs[index].id;
+                                          // FirebaseFirestore.instance
+                                          //     .collection("Posts")
+                                          //     .doc(FirebaseAuth
+                                          //         .instance.currentUser.uid)
+                                          //     .collection("posts")
+                                          //     .doc(id)
+                                          //     .delete();
+                                        }
+                                        break;
+                                    }
+                                  },
                                 ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: 10, horizontal: 5),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      Text("Time: ${body["time"]}"),
-                                      Text("Date: ${body["date"]}"),
-                                    ],
+                              ),
+                              GestureDetector(
+                                onDoubleTap: () {
+                                  var id = snapshot.data.docs[index].id;
+                                  FirebaseFirestore.instance
+                                      .collection("Posts")
+                                      .doc(id)
+                                      .update({
+                                    "favorite": !body["favorite"]
+                                  }).catchError((onError) {
+                                    print(onError.toString());
+                                  });
+                                },
+                                child: Center(
+                                  child: Image.network(
+                                    body["imageUrl"],
+                                    fit: BoxFit.cover,
                                   ),
                                 ),
-                              ],
-                            ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 6, horizontal: 10),
+                                child: Row(
+                                  children: [
+                                    GestureDetector(
+                                      onTap: () {
+                                        var id = snapshot.data.docs[index].id;
+                                        FirebaseFirestore.instance
+                                            .collection("Posts")
+                                            .doc(id)
+                                            .update({
+                                          "favorite": !body["favorite"]
+                                        }).catchError((onError) {
+                                          print(onError.toString());
+                                        });
+                                      },
+                                      child: body["favorite"]
+                                          ? Icon(
+                                              Icons.favorite,
+                                              color: Colors.red,
+                                            )
+                                          : Icon(Icons.favorite_border),
+                                    ),
+                                    SizedBox(width: 8),
+                                    GestureDetector(
+                                      onTap: () {},
+                                      child: Icon(FontAwesomeIcons.comment),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 5, horizontal: 10),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text.rich(
+                                      TextSpan(
+                                        children: <InlineSpan>[
+                                          TextSpan(
+                                            text: 'Blog Description: ',
+                                            style: TextStyle(
+                                              fontSize: 17,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          TextSpan(
+                                            text: body["desc"],
+                                          ),
+                                        ],
+                                      ),
+                                      maxLines: 3,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Divider(
+                                color: Colors.black,
+                                indent: 20,
+                                endIndent: 20,
+                                thickness: 1,
+                              ),
+                            ],
                           );
                         },
                       )

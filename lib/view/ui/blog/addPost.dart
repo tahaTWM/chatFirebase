@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:intl/intl.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddPost extends StatefulWidget {
   @override
@@ -18,11 +19,17 @@ class AddPost extends StatefulWidget {
 
 class _AddPostState extends State<AddPost> {
   File _image;
-  TextEditingController titleController = TextEditingController();
   TextEditingController descController = TextEditingController();
   ImagePicker imagePicker = ImagePicker();
   bool uploading = false;
   BlogApis api = BlogApis();
+  Map userInfo;
+
+  @override
+  void initState() {
+    getUserInfo();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,15 +70,9 @@ class _AddPostState extends State<AddPost> {
             Container(
               width: width - 30,
               child: TextField(
-                controller: titleController,
-                decoration: InputDecoration(hintText: "Blog Title"),
-              ),
-            ),
-            Container(
-              width: width - 30,
-              child: TextField(
                 controller: descController,
                 decoration: InputDecoration(hintText: "Blog Description"),
+                onSubmitted: (_) => uploadImage(),
               ),
             ),
             SizedBox(height: 20),
@@ -113,7 +114,7 @@ class _AddPostState extends State<AddPost> {
     if (_image == null) {
       await picIamge();
     }
-    if (titleController.text.isNotEmpty && descController.text.isNotEmpty) {
+    if (descController.text.isNotEmpty) {
       String imageName = DateTime.now().microsecondsSinceEpoch.toString();
       final Reference storageFilename =
           FirebaseStorage.instance.ref().child("BlogIamges").child(imageName);
@@ -140,21 +141,15 @@ class _AddPostState extends State<AddPost> {
     String timeNow = time.format(DateTime.now()).toString();
     String dayNow = day.format(DateTime.now()).toString();
 
-    if (titleController.text.isNotEmpty &&
-        descController.text.isNotEmpty &&
-        imagePath.isNotEmpty) {
-      FirebaseFirestore.instance
-          .collection('Posts')
-          .doc(FirebaseAuth.instance.currentUser.uid)
-          .collection('posts')
-          .add({
+    if (descController.text.isNotEmpty && imagePath.isNotEmpty) {
+      FirebaseFirestore.instance.collection('Posts').add({
         'imageUrl': imagePath,
-        'title': titleController.text,
         'desc': descController.text,
         'time': timeNow,
         'date': dayNow,
         'favorite': false,
         'orderID': DateTime.now().millisecondsSinceEpoch,
+        'uploaderInfo': userInfo,
       }).then((value) {
         setState(() {
           uploading = false;
@@ -166,5 +161,15 @@ class _AddPostState extends State<AddPost> {
     } else {
       api.useToast("error in Entering Data");
     }
+  }
+
+  getUserInfo() async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    var uid = pref.getString('uid');
+    var user =
+        await FirebaseFirestore.instance.collection('Users').doc(uid).get();
+    setState(() {
+      userInfo = user.data();
+    });
   }
 }
