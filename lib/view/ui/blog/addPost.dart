@@ -166,10 +166,12 @@ class _AddPostState extends State<AddPost> {
   getUserInfo() async {
     SharedPreferences pref = await SharedPreferences.getInstance();
     var uid = pref.getString('uid');
+    print(uid);
     var user =
         await FirebaseFirestore.instance.collection('Users').doc(uid).get();
     setState(() {
       userInfo = user.data();
     });
+    print(userInfo);
   }
 }

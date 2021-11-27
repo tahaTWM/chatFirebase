@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'addPost.dart';
 
@@ -19,7 +20,7 @@ class DisplayPost extends StatefulWidget {
 class _DisplayPostState extends State<DisplayPost> {
   Stream _streamData;
   BlogApis blogApis = BlogApis();
-
+  var userImage;
   @override
   void initState() {
     getData();
@@ -49,14 +50,34 @@ class _DisplayPostState extends State<DisplayPost> {
               },
               color: Colors.white,
             ),
-            IconButton(
-              icon: Icon(Icons.person),
-              onPressed: () {
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => Profile()));
-              },
-              color: Colors.white,
-            ),
+            userImage == null
+                ? IconButton(
+                    icon: Icon(Icons.person),
+                    onPressed: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Profile()));
+                    },
+                    color: Colors.white,
+                  )
+                : GestureDetector(
+                    onTap: () {
+                      Navigator.push(context,
+                          MaterialPageRoute(builder: (context) => Profile()));
+                    },
+                    child: Container(
+                      margin: EdgeInsets.only(right: 10),
+                      width: 28,
+                      height: 28,
+                      padding: EdgeInsets.all(1.2),
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          image: DecorationImage(
+                            image: NetworkImage(userImage),
+                            fit: BoxFit.cover,
+                          )),
+                    ),
+                  ),
           ]),
       body: RefreshIndicator(
         onRefresh: () => getData(),
@@ -188,15 +209,22 @@ class _DisplayPostState extends State<DisplayPost> {
                                       },
                                       child: body["favorite"]
                                           ? Icon(
-                                              Icons.favorite,
+                                              FontAwesomeIcons.solidHeart,
                                               color: Colors.red,
+                                              size: 29,
                                             )
-                                          : Icon(Icons.favorite_border),
+                                          : Icon(
+                                              FontAwesomeIcons.heart,
+                                              size: 29,
+                                            ),
                                     ),
-                                    SizedBox(width: 8),
+                                    SizedBox(width: 10),
                                     GestureDetector(
                                       onTap: () {},
-                                      child: Icon(FontAwesomeIcons.comment),
+                                      child: Icon(
+                                        FontAwesomeIcons.comment,
+                                        size: 29,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -232,7 +260,7 @@ class _DisplayPostState extends State<DisplayPost> {
                                 color: Colors.black,
                                 indent: 20,
                                 endIndent: 20,
-                                thickness: 1,
+                                thickness: 0.7,
                               ),
                             ],
                           );
@@ -262,6 +290,9 @@ class _DisplayPostState extends State<DisplayPost> {
       setState(() {
         _streamData = value;
       });
+    });
+    setState(() {
+      userImage = FirebaseAuth.instance.currentUser.photoURL;
     });
   }
 }

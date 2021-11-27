@@ -132,8 +132,8 @@ class _ConversionScreenState extends State<ConversionScreen> {
                       onLongPress: () {
                         print(data);
                         // getReseverData();
-                        //  deleteChat(
-                        //   data["charRoomId"], snapshot.data.docs[index].data());
+                        deleteChat(data["charRoomId"],
+                            snapshot.data.docs[index].data());
                       },
                       leading: Container(
                         width: 55,

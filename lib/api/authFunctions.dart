@@ -21,9 +21,16 @@ class Api {
           email: email, password: password);
 
       await pref.setString("username", result.user.displayName);
-      if (pref.getString('uid') == null)
-        await pref.setString("uid", result.user.uid.toString());
 
+      await pref.setString("uid", result.user.uid.toString());
+
+      Map<String, String> userData = {
+        "name": result.user.displayName,
+        "email": result.user.email,
+        "profileImage": result.user.photoURL,
+      };
+      print(userData);
+      dataBase.setUserData(userData);
       return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
@@ -66,7 +73,7 @@ class Api {
           "email": googleSignInAccount.email,
           "profileImage": googleSignInAccount.photoUrl,
         };
-        DataBase dataBase = DataBase();
+
         dataBase.setUserData(userData);
         Navigator.push(context,
             MaterialPageRoute(builder: (context) => ConversionScreen()));
