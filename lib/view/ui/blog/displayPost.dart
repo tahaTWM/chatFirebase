@@ -1,5 +1,6 @@
-// ignore_for_file: file_names, prefer_const_constructors, sized_box_for_whitespace, avoid_print, prefer_const_literals_to_create_immutables
+// ignore_for_file: file_names, prefer_const_constructors, sized_box_for_whitespace, avoid_print, prefer_const_literals_to_create_immutables, curly_braces_in_flow_control_structures
 
+import 'package:chat_app/api/databaseFunctions.dart';
 import 'package:chat_app/view/chat_view/conversionScreen.dart';
 import 'package:chat_app/view/chat_view/profile.dart';
 import 'package:chat_app/view/ui/functions.dart';
@@ -8,6 +9,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'addPost.dart';
@@ -19,8 +21,11 @@ class DisplayPost extends StatefulWidget {
 
 class _DisplayPostState extends State<DisplayPost> {
   Stream _streamData;
+  Stream _streamComment;
   BlogApis blogApis = BlogApis();
   var userImage;
+
+  TextEditingController commentController = TextEditingController();
   @override
   void initState() {
     getData();
@@ -33,7 +38,7 @@ class _DisplayPostState extends State<DisplayPost> {
       // backgroundColor: Color.fromRGBO(54, 57, 63, 1),
       appBar: AppBar(
           title: Text(
-            "Blog App",
+            "minGram",
             style: TextStyle(color: Colors.white),
           ),
           centerTitle: true,
@@ -211,21 +216,25 @@ class _DisplayPostState extends State<DisplayPost> {
                                           ? Icon(
                                               FontAwesomeIcons.solidHeart,
                                               color: Colors.red,
-                                              size: 29,
+                                              size: 22,
                                             )
                                           : Icon(
                                               FontAwesomeIcons.heart,
-                                              size: 29,
+                                              size: 22,
                                             ),
                                     ),
                                     SizedBox(width: 10),
                                     GestureDetector(
-                                      onTap: () {},
-                                      child: Icon(
-                                        FontAwesomeIcons.comment,
-                                        size: 29,
-                                      ),
-                                    ),
+                                        onTap: () async {
+                                          await getComments(
+                                              snapshot.data.docs[index].id);
+                                          _showMyDialog(
+                                              snapshot.data.docs[index].id);
+                                        },
+                                        child: Icon(
+                                          FontAwesomeIcons.comment,
+                                          size: 22,
+                                        )),
                                   ],
                                 ),
                               ),
@@ -235,20 +244,11 @@ class _DisplayPostState extends State<DisplayPost> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text.rich(
-                                      TextSpan(
-                                        children: <InlineSpan>[
-                                          TextSpan(
-                                            text: 'Blog Description: ',
-                                            style: TextStyle(
-                                              fontSize: 17,
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          TextSpan(
-                                            text: body["desc"],
-                                          ),
-                                        ],
+                                    Text(
+                                      body["desc"],
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w600,
                                       ),
                                       maxLines: 3,
                                       overflow: TextOverflow.ellipsis,
@@ -256,12 +256,14 @@ class _DisplayPostState extends State<DisplayPost> {
                                   ],
                                 ),
                               ),
-                              Divider(
-                                color: Colors.black,
-                                indent: 20,
-                                endIndent: 20,
-                                thickness: 0.7,
-                              ),
+                              (index + 1) != snapshot.data.docs.length
+                                  ? Divider(
+                                      color: Colors.black,
+                                      indent: 20,
+                                      endIndent: 20,
+                                      thickness: 0.7,
+                                    )
+                                  : Container(),
                             ],
                           );
                         },
@@ -294,5 +296,143 @@ class _DisplayPostState extends State<DisplayPost> {
     setState(() {
       userImage = FirebaseAuth.instance.currentUser.photoURL;
     });
+  }
+
+  getComments(var id) async {
+    DataBase dataBase = DataBase();
+    dataBase.comments(id).then((value) {
+      setState(() {
+        _streamComment = value;
+      });
+    });
+  }
+
+  Future _showMyDialog(var id) async {
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Comments'),
+          content: streamOfComments(),
+          actions: [
+            TextFormField(
+              controller: commentController,
+              decoration: InputDecoration(
+                  hintText: "typing...",
+                  suffixIcon: IconButton(
+                    onPressed: () async {
+                      SharedPreferences pref =
+                          await SharedPreferences.getInstance();
+
+                      var username = pref.getString("username");
+
+                      var time = DateFormat('MMM d, yyyy');
+                      var day = DateFormat('EEEE, hh:mm a');
+
+                      String timeNow = time.format(DateTime.now()).toString();
+                      String dayNow = day.format(DateTime.now()).toString();
+                      DataBase dataBase = DataBase();
+                      BlogApis api = BlogApis();
+                      Map<String, dynamic> mapComment = {
+                        "comment": commentController.text,
+                        "commentBy": username,
+                        'time': timeNow,
+                        'date': dayNow,
+                        'orderID': DateTime.now().millisecondsSinceEpoch,
+                      };
+                      if (commentController.text.isNotEmpty)
+                        dataBase.addcomments(mapComment, id);
+                      else
+                        api.useToast('enter a comment');
+                    },
+                    icon: Icon(
+                      Icons.send_rounded,
+                      color: Colors.black,
+                      size: 20,
+                    ),
+                  ),
+                  hintStyle: TextStyle(color: Colors.black),
+                  focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black)),
+                  enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black))),
+              style: TextStyle(color: Colors.black, fontSize: 20),
+              cursorColor: Colors.black,
+              minLines: 1,
+              maxLines: 3,
+            )
+          ],
+        );
+      },
+    );
+  }
+
+  Widget streamOfComments() {
+    return StreamBuilder(
+      stream: _streamComment,
+      builder: (context, snapshot) {
+        return snapshot.hasData
+            ? Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height * 0.4,
+                child: ListView.builder(
+                  itemCount: snapshot.data.docs.length,
+                  padding: EdgeInsets.symmetric(vertical: 10),
+                  itemBuilder: (BuildContext context, int index) {
+                    final data = snapshot.data.docs[index].data() as Map;
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 5),
+                      child: ListTile(
+                        contentPadding: EdgeInsets.zero,
+                        // leading: resverPhotoUrl.length == 0
+                        //     ? FlutterLogo()
+                        //     : Container(
+                        //         width: 55,
+                        //         height: 55,
+                        //         padding: EdgeInsets.all(1.2),
+                        //         decoration: BoxDecoration(
+                        //           color: Colors.white,
+                        //           shape: BoxShape.circle,
+                        //         ),
+                        //         child: ClipRRect(
+                        //             borderRadius:
+                        //                 BorderRadius.circular(500),
+                        //             child: Image.network(
+                        //               resverPhotoUrl,
+                        //               fit: BoxFit.cover,
+                        //             )),
+                        //       ),
+                        title: Text(
+                          data['comment'],
+                          style: TextStyle(color: Colors.black),
+                        ),
+                        trailing: Text(
+                          data['commentBy'],
+                          style: TextStyle(
+                            color: Colors.black,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              )
+            : Center(
+                child: Text(
+                  "No Comments",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 23,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+      },
+    );
   }
 }

@@ -72,6 +72,22 @@ class DataBase {
         .get();
   }
 
+  Future comments(var id) async {
+    return FirebaseFirestore.instance
+        .collection('Posts')
+        .doc(id)
+        .collection('comments')
+        .snapshots();
+  }
+
+  Future addcomments(mapComment, var id) async {
+    return FirebaseFirestore.instance
+        .collection('Posts')
+        .doc(id)
+        .collection('comments')
+        .add(mapComment);
+  }
+
   // not sure worked
 
   Future getUserData() async {

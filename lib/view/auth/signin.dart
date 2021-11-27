@@ -18,6 +18,7 @@ class _SiginScreenState extends State<SiginScreen> {
   TextEditingController passwordController = TextEditingController();
   Api api = Api();
   bool remimberMe = false;
+  bool loading = false;
 
   @override
   void initState() {
@@ -33,93 +34,111 @@ class _SiginScreenState extends State<SiginScreen> {
         backgroundColor: Color.fromRGBO(49, 110, 125, 1),
         title: Text("Sign In Your account"),
       ),
-      body: Container(
-        padding: EdgeInsets.all(25),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextFormField(
-              controller: emailController,
-              decoration: textFieldInputDecoration("Email"),
-              style: TextStyle(color: Colors.white),
-            ),
-            SizedBox(height: 20),
-            TextFormField(
-              controller: passwordController,
-              decoration: textFieldInputDecoration("Password"),
-              style: TextStyle(color: Colors.white),
-              obscureText: true,
-              onFieldSubmitted: (_) => signIn(),
-            ),
-            SizedBox(height: 20),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: remimberMe,
-                        onChanged: (value) {
-                          setState(() {
-                            remimberMe = value;
-                          });
-                        },
-                      ),
-                      Text('remember me', style: TextStyle(color: Colors.white))
-                    ],
-                  ),
-                  InkWell(
-                      onTap: () => forgetPassword(),
-                      child: Text(
-                        "Forget Password?",
-                        style: TextStyle(color: Colors.white),
-                      ))
-                ],
-              ),
-            ),
-            Column(
-              children: [
-                RaisedButton(
-                  onPressed: () => signIn(),
-                  child: Text("Sigin In"),
-                  padding: EdgeInsets.symmetric(horizontal: 95, vertical: 15),
-                  shape: rectangleBorder(),
-                ),
-                SizedBox(height: 10),
-                RaisedButton(
-                  onPressed: () => signInWithGoogle(),
-                  child: Text("Sign In With Google"),
-                  shape: rectangleBorder(),
-                  padding: EdgeInsets.symmetric(horizontal: 60, vertical: 15),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20),
-              child: Row(
+      body: loading
+          ? Center(child: CircularProgressIndicator())
+          : Container(
+              padding: EdgeInsets.all(25),
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    "Don't have account? ",
+                  TextFormField(
+                    controller: emailController,
+                    decoration: textFieldInputDecoration("Email"),
                     style: TextStyle(color: Colors.white),
                   ),
-                  InkWell(
-                    onTap: () => registerNow(),
-                    child: Text(
-                      "Register Now",
-                      style: TextStyle(
-                          color: Colors.white,
-                          decoration: TextDecoration.underline),
+                  SizedBox(height: 20),
+                  TextFormField(
+                    controller: passwordController,
+                    decoration: textFieldInputDecoration("Password"),
+                    style: TextStyle(color: Colors.white),
+                    obscureText: true,
+                    onFieldSubmitted: (_) => signIn(),
+                    onTap: () {
+                      if (!emailController.text.contains('@')) {
+                        setState(() {
+                          emailController.text =
+                              emailController.text + '@gmail.com';
+                        });
+                      }
+                    },
+                  ),
+                  SizedBox(height: 20),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: remimberMe,
+                              onChanged: (value) {
+                                setState(() {
+                                  remimberMe = value;
+                                });
+                              },
+                            ),
+                            Text('remember me',
+                                style: TextStyle(color: Colors.white))
+                          ],
+                        ),
+                        InkWell(
+                            onTap: () => forgetPassword(),
+                            child: Text(
+                              "Forget Password?",
+                              style: TextStyle(color: Colors.white),
+                            ))
+                      ],
                     ),
-                  )
+                  ),
+                  Column(
+                    children: [
+                      RaisedButton(
+                        onPressed: () {
+                          setState(() {
+                            loading = true;
+                          });
+                          signIn();
+                        },
+                        child: Text("Sigin In"),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 95, vertical: 15),
+                        shape: rectangleBorder(),
+                      ),
+                      SizedBox(height: 10),
+                      RaisedButton(
+                        onPressed: () => signInWithGoogle(),
+                        child: Text("Sign In With Google"),
+                        shape: rectangleBorder(),
+                        padding:
+                            EdgeInsets.symmetric(horizontal: 60, vertical: 15),
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Don't have account? ",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                        InkWell(
+                          onTap: () => registerNow(),
+                          child: Text(
+                            "Register Now",
+                            style: TextStyle(
+                                color: Colors.white,
+                                decoration: TextDecoration.underline),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 

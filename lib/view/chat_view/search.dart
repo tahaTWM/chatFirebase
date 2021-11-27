@@ -171,7 +171,9 @@ class _SearchState extends State<Search> {
                   color: Colors.white,
                   shape: BoxShape.circle,
                   image: DecorationImage(
-                      image: NetworkImage(data['profileImage']))),
+                    image: NetworkImage(data['profileImage']),
+                    fit: BoxFit.cover,
+                  )),
             ),
             title: Text(
               data["name"],

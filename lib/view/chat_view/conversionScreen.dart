@@ -19,18 +19,25 @@ class _ConversionScreenState extends State<ConversionScreen> {
   var name;
   var photoUrl;
 
-  String resverName;
-  String resverPhotoUrl;
+  String resverName = '';
+  String resverPhotoUrl = '';
+
+  String resverName1 = '';
+  String resverPhotoUrl1 = '';
 
   bool found = true;
+  Stream querySnapshot;
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   @override
   void initState() {
     getSenderData();
     getChatsRoom();
     super.initState();
   }
-
-  Stream querySnapshot;
 
   @override
   Widget build(BuildContext context) {
@@ -87,109 +94,115 @@ class _ConversionScreenState extends State<ConversionScreen> {
         setState(() {
           querySnapshot = value;
         });
-        print(await querySnapshot.length);
       },
     );
   }
 
   chatsRoomsWidget() {
-    return StreamBuilder(
-      stream: querySnapshot,
-      builder: (context, snapshot) {
-        return snapshot.hasData
-            ? ListView.builder(
-                itemCount: snapshot.data.docs.length,
-                padding: EdgeInsets.symmetric(vertical: 10),
-                itemBuilder: (BuildContext context, int index) {
-                  final data = snapshot.data.docs[index].data() as Map;
-                  // Text(
-                  //       "You didn't\ndo any Chat yet",
-                  //       textAlign: TextAlign.center,
-                  //       style: TextStyle(
-                  //         color: Colors.white,
-                  //         fontSize: 23,
-                  //         fontWeight: FontWeight.w500,
-                  //       ),
-                  //     )
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      onTap: () async {
-                        var userID = await FirebaseFirestore.instance
-                            .collection("Users")
-                            .where("name",
-                                isEqualTo:
-                                    data['charRoomId'].toString().split('-')[1])
-                            .get();
-                        var resverID = userID.docs[0].id;
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => ChatRoomScreen(
-                                    data["charRoomId"], resverID)));
+    return querySnapshot == null
+        ? Center(child: CircularProgressIndicator())
+        : StreamBuilder(
+            stream: querySnapshot,
+            builder: (context, snapshot) {
+              return snapshot.hasData
+                  ? ListView.builder(
+                      itemCount: snapshot.data.docs.length,
+                      padding: EdgeInsets.symmetric(vertical: 10),
+                      itemBuilder: (BuildContext context, int index) {
+                        final data = snapshot.data.docs[index].data() as Map;
+                        // Text(
+                        //       "You didn't\ndo any Chat yet",
+                        //       textAlign: TextAlign.center,
+                        //       style: TextStyle(
+                        //         color: Colors.white,
+                        //         fontSize: 23,
+                        //         fontWeight: FontWeight.w500,
+                        //       ),
+                        //     )
+                        // checkName(data['users']);
+                        // print('----------------------');
+                        // print(data['users']);
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          child: ListTile(
+                            contentPadding: EdgeInsets.zero,
+                            onTap: () async {
+                              var userID = await FirebaseFirestore.instance
+                                  .collection("Users")
+                                  .where("name",
+                                      isEqualTo: data['charRoomId']
+                                          .toString()
+                                          .split('-')[1])
+                                  .get();
+                              var resverID = userID.docs[0].id;
+                              Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => ChatRoomScreen(
+                                          data["charRoomId"], resverID)));
+                            },
+                            onLongPress: () {
+                              deleteChat(data["charRoomId"],
+                                  snapshot.data.docs[index].data());
+                            },
+                            // leading: resverPhotoUrl.length == 0
+                            //     ? FlutterLogo()
+                            //     : Container(
+                            //         width: 55,
+                            //         height: 55,
+                            //         padding: EdgeInsets.all(1.2),
+                            //         decoration: BoxDecoration(
+                            //           color: Colors.white,
+                            //           shape: BoxShape.circle,
+                            //         ),
+                            //         child: ClipRRect(
+                            //             borderRadius:
+                            //                 BorderRadius.circular(500),
+                            //             child: Image.network(
+                            //               resverPhotoUrl,
+                            //               fit: BoxFit.cover,
+                            //             )),
+                            //       ),
+                            title: Text(
+                              data['charRoomId'],
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            subtitle: Text(
+                              data["chatRoomCreateDate"]
+                                  .toString()
+                                  .split('-')[1]
+                                  .toString(),
+                              style: TextStyle(color: Colors.white),
+                            ),
+                            trailing: Text(
+                              data["chatRoomCreateDate"]
+                                  .toString()
+                                  .split('-')[0]
+                                  .toString(),
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 15,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ),
+                        );
                       },
-                      onLongPress: () {
-                        print(data);
-                        // getReseverData();
-                        deleteChat(data["charRoomId"],
-                            snapshot.data.docs[index].data());
-                      },
-                      leading: Container(
-                        width: 55,
-                        height: 55,
-                        padding: EdgeInsets.all(1.2),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                        child: ClipRRect(
-                            borderRadius: BorderRadius.circular(500),
-                            child: Image.network(
-                              photoUrl,
-                              fit: BoxFit.cover,
-                            )),
-                      ),
-                      title: Text(
-                        data["users"][1],
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      subtitle: Text(
-                        data["chatRoomCreateDate"]
-                            .toString()
-                            .split('-')[1]
-                            .toString(),
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      trailing: Text(
-                        data["chatRoomCreateDate"]
-                            .toString()
-                            .split('-')[0]
-                            .toString(),
+                    )
+                  : Center(
+                      child: Text(
+                        "You didn't\ndo any Chat yet",
+                        textAlign: TextAlign.center,
                         style: TextStyle(
                           color: Colors.white,
+                          fontSize: 23,
                           fontWeight: FontWeight.w500,
-                          fontSize: 15,
                         ),
-                        textAlign: TextAlign.center,
                       ),
-                    ),
-                  );
-                },
-              )
-            : Center(
-                child: Text(
-                  "You didn't\ndo any Chat yet",
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 23,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              );
-      },
-    );
+                    );
+            },
+          );
   }
 
   getSenderData() async {
@@ -201,19 +214,6 @@ class _ConversionScreenState extends State<ConversionScreen> {
         photoUrl = userData["photoUrl"];
       });
     }).catchError((onError) => print(onError.toString()));
-  }
-
-  getReseverData(String resverName) async {
-    var resverInfo1 = await FirebaseFirestore.instance
-        .collection("Users")
-        .where("name", isEqualTo: resverName)
-        .get();
-    var resverInfo2 = resverInfo1.docs[0].data();
-    print(resverInfo2);
-    setState(() {
-      resverName = resverInfo2["name"];
-      resverPhotoUrl = resverInfo2["profileImage"];
-    });
   }
 
   deleteChat(String charRoomId, var index) async {
@@ -228,5 +228,26 @@ class _ConversionScreenState extends State<ConversionScreen> {
 
     FirebaseFirestore.instance.collection('Chats').doc(chatConv).delete();
     getChatsRoom();
+  }
+
+  getReseverName(List users) {
+    if (mounted) return getNmae(users);
+  }
+
+  getNmae(var users) async {
+    SharedPreferences pref = await SharedPreferences.getInstance();
+    String prefName = pref.getString('username');
+
+    if (users[0] == prefName) {
+      resverName1 = users[1];
+    } else
+      resverName1 = users[0];
+
+    var resverInfo1 = await FirebaseFirestore.instance
+        .collection("Users")
+        .where("name", isEqualTo: resverName1)
+        .get();
+    var resverInfo2 = resverInfo1.docs[0].data();
+    return resverInfo2['name'];
   }
 }

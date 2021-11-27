@@ -75,39 +75,38 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
       body: Column(
         children: [
           chatWidget(),
-          Expanded(
-            flex: 1,
-            child: Container(
-              padding: EdgeInsets.only(left: 10, right: 10, bottom: 20),
-              alignment: Alignment.bottomCenter,
-              child: TextFormField(
-                controller: chatingController,
-                decoration: InputDecoration(
-                  hintText: "typing...",
-                  suffixIcon: IconButton(
-                    onPressed: () {
-                      sendMessage().then((value) {
-                        jump();
-                        setState(() {
-                          chatingController.clear();
-                        });
+          Container(
+            padding: EdgeInsets.only(left: 18, right: 18, bottom: 10),
+            alignment: Alignment.bottomCenter,
+            child: TextFormField(
+              controller: chatingController,
+              decoration: InputDecoration(
+                hintText: "typing...",
+                suffixIcon: IconButton(
+                  onPressed: () {
+                    sendMessage().then((value) {
+                      jump();
+                      setState(() {
+                        chatingController.clear();
                       });
-                    },
-                    icon: Icon(
-                      Icons.send_rounded,
-                      color: Colors.white,
-                      size: 24,
-                    ),
+                    });
+                  },
+                  icon: Icon(
+                    Icons.send_rounded,
+                    color: Colors.white,
+                    size: 24,
                   ),
-                  hintStyle: TextStyle(color: Colors.white54),
-                  focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white)),
-                  enabledBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: Colors.white)),
                 ),
-                style: TextStyle(color: Colors.white, fontSize: 22),
-                cursorColor: Colors.white,
+                hintStyle: TextStyle(color: Colors.white54),
+                focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
+                enabledBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.white)),
               ),
+              style: TextStyle(color: Colors.white, fontSize: 22),
+              cursorColor: Colors.white,
+              minLines: 1,
+              maxLines: 3,
             ),
           )
         ],
@@ -167,6 +166,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
             ? Expanded(
                 flex: 8,
                 child: ListView.builder(
+                  physics: BouncingScrollPhysics(),
                   shrinkWrap: true,
                   controller: _scrollController,
                   itemCount: snapshot.data.docs.length + 1,
@@ -184,6 +184,7 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                     if (index == snapshot.data.docs.length)
                       return Container(height: 10);
                     var data = snapshot.data.docs[index].data() as Map;
+                    String name = data["message"];
                     return username == data["sendBy"]
                         ? GestureDetector(
                             onLongPress: () async {
@@ -210,22 +211,25 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                       style: TextStyle(
                                           color:
                                               Color.fromRGBO(49, 110, 125, 0.7),
-                                          fontSize: 13)),
+                                          fontSize: 11)),
                                   SizedBox(width: 10),
                                   Container(
+                                    width: name.length > 15
+                                        ? MediaQuery.of(context).size.width *
+                                            0.66
+                                        : null,
                                     margin: EdgeInsets.all(5),
-                                    padding: EdgeInsets.symmetric(
-                                        vertical: 8, horizontal: 10),
+                                    padding: EdgeInsets.all(12),
                                     decoration: BoxDecoration(
                                         color: Color.fromRGBO(49, 110, 125, 1),
                                         borderRadius: BorderRadius.only(
                                             topLeft: Radius.circular(40),
                                             topRight: Radius.circular(40),
                                             bottomLeft: Radius.circular(40))),
-                                    child: Text(data["message"],
+                                    child: Text(name,
                                         style: TextStyle(
                                             color: Colors.white, fontSize: 22),
-                                        maxLines: 5),
+                                        maxLines: 50),
                                   ),
                                 ],
                               ),
@@ -236,9 +240,11 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                             child: Row(
                               children: [
                                 Container(
+                                  width: name.length > 15
+                                      ? MediaQuery.of(context).size.width * 0.62
+                                      : null,
                                   margin: EdgeInsets.all(5),
-                                  padding: EdgeInsets.symmetric(
-                                      vertical: 8, horizontal: 10),
+                                  padding: EdgeInsets.all(12),
                                   decoration: BoxDecoration(
                                       color: Colors.grey[700],
                                       borderRadius: BorderRadius.only(
@@ -247,13 +253,16 @@ class _ChatRoomScreenState extends State<ChatRoomScreen> {
                                           bottomRight: Radius.circular(40))),
                                   child: Text(data["message"],
                                       style: TextStyle(
-                                          color: Colors.white, fontSize: 22)),
+                                        color: Colors.white,
+                                        fontSize: 22,
+                                      ),
+                                      maxLines: 5),
                                 ),
                                 SizedBox(width: 10),
                                 Text(data["data"],
                                     style: TextStyle(
                                         color: Colors.grey[600], fontSize: 13),
-                                    maxLines: 5)
+                                    maxLines: 50)
                               ],
                             ),
                           );
