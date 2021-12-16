@@ -41,7 +41,7 @@ class _AddPostState extends State<AddPost> {
           style: TextStyle(color: Colors.white),
         ),
         centerTitle: true,
-        backgroundColor: Color.fromRGBO(49, 110, 125, 1),
+        backgroundColor: Color.fromRGBO(240, 126, 32, 1),
         elevation: 0,
         iconTheme: IconThemeData(color: Colors.white),
       ),
@@ -88,7 +88,7 @@ class _AddPostState extends State<AddPost> {
                             "Upload",
                             style: TextStyle(color: Colors.white),
                           ),
-                          color: Color.fromRGBO(49, 110, 125, 1),
+                          color: Color.fromRGBO(240, 126, 32, 1),
                         )
                       ],
                     ),
@@ -147,7 +147,7 @@ class _AddPostState extends State<AddPost> {
         'desc': descController.text,
         'time': timeNow,
         'date': dayNow,
-        'favorite': false,
+        'favorite': [],
         'orderID': DateTime.now().millisecondsSinceEpoch,
         'uploaderInfo': userInfo,
       }).then((value) {

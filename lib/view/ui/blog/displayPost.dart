@@ -1,5 +1,7 @@
 // ignore_for_file: file_names, prefer_const_constructors, sized_box_for_whitespace, avoid_print, prefer_const_literals_to_create_immutables, curly_braces_in_flow_control_structures
 
+import 'dart:ffi';
+
 import 'package:chat_app/api/databaseFunctions.dart';
 import 'package:chat_app/view/chat_view/conversionScreen.dart';
 import 'package:chat_app/view/chat_view/profile.dart';
@@ -24,7 +26,6 @@ class _DisplayPostState extends State<DisplayPost> {
   Stream _streamComment;
   BlogApis blogApis = BlogApis();
   var userImage;
-
   TextEditingController commentController = TextEditingController();
   @override
   void initState() {
@@ -38,7 +39,7 @@ class _DisplayPostState extends State<DisplayPost> {
       // backgroundColor: Color.fromRGBO(54, 57, 63, 1),
       appBar: AppBar(
           title: Text(
-            "minGram",
+            "MinGram",
             style: TextStyle(color: Colors.white),
           ),
           centerTitle: true,
@@ -98,6 +99,8 @@ class _DisplayPostState extends State<DisplayPost> {
                         itemBuilder: (BuildContext context, int index) {
                           Map<String, dynamic> body =
                               snapshot.data.docs[index].data() as Map;
+                          var id = snapshot.data.docs[index].id;
+
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -177,17 +180,17 @@ class _DisplayPostState extends State<DisplayPost> {
                                 ),
                               ),
                               GestureDetector(
-                                onDoubleTap: () {
-                                  var id = snapshot.data.docs[index].id;
-                                  FirebaseFirestore.instance
-                                      .collection("Posts")
-                                      .doc(id)
-                                      .update({
-                                    "favorite": !body["favorite"]
-                                  }).catchError((onError) {
-                                    print(onError.toString());
-                                  });
-                                },
+                                // onDoubleTap: () {
+                                //   var id = snapshot.data.docs[index].id;
+                                //   FirebaseFirestore.instance
+                                //       .collection("Posts")
+                                //       .doc(id)
+                                //       .update({
+                                //     "favorite": !body["favorite"]
+                                //   }).catchError((onError) {
+                                //     print(onError.toString());
+                                //   });
+                                // },
                                 child: Center(
                                   child: Image.network(
                                     body["imageUrl"],
@@ -201,27 +204,41 @@ class _DisplayPostState extends State<DisplayPost> {
                                 child: Row(
                                   children: [
                                     GestureDetector(
-                                      onTap: () {
+                                      onTap: () async {
                                         var id = snapshot.data.docs[index].id;
-                                        FirebaseFirestore.instance
+                                        var userID = FirebaseAuth
+                                            .instance.currentUser.uid;
+                                        var data = await FirebaseFirestore
+                                            .instance
                                             .collection("Posts")
                                             .doc(id)
-                                            .update({
-                                          "favorite": !body["favorite"]
-                                        }).catchError((onError) {
-                                          print(onError.toString());
+                                            .get();
+                                        var update = FirebaseFirestore.instance
+                                            .collection("Posts")
+                                            .doc(id);
+                                        await update.update({
+                                          "favorite":
+                                              FieldValue.arrayUnion([userID])
                                         });
+                                        print(likes(
+                                            snapshot.data.docs[index].id));
+                                            
+                                        // print(data.data()["favorite"]);
                                       },
-                                      child: body["favorite"]
-                                          ? Icon(
-                                              FontAwesomeIcons.solidHeart,
-                                              color: Colors.red,
-                                              size: 22,
-                                            )
-                                          : Icon(
-                                              FontAwesomeIcons.heart,
-                                              size: 22,
-                                            ),
+                                      child:
+                                          // likes(snapshot.data.docs[index].id)
+                                          //         .contains(FirebaseAuth
+                                          //             .instance.currentUser.uid)
+                                          //     ? Icon(
+                                          //         FontAwesomeIcons.solidHeart,
+                                          //         color: Colors.red,
+                                          //         size: 22,
+                                          //       )
+                                          //     :
+                                          Icon(
+                                        FontAwesomeIcons.heart,
+                                        size: 22,
+                                      ),
                                     ),
                                     SizedBox(width: 10),
                                     GestureDetector(
@@ -434,5 +451,11 @@ class _DisplayPostState extends State<DisplayPost> {
               );
       },
     );
+  }
+
+  likes(var id) async {
+    var data =
+        await FirebaseFirestore.instance.collection("Posts").doc(id).get();
+    return data.data()["favorite"];
   }
 }

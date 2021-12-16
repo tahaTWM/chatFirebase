@@ -2,8 +2,9 @@
     package="com.example.chat_app">
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
    <application
-        android:label="chat_app"
+        android:label="MinGram"
         android:icon="@mipmap/ic_launcher">
         <activity
             android:name=".MainActivity"

@@ -29,7 +29,7 @@ class _SignUpState extends State<SignUp> {
       backgroundColor: Color.fromRGBO(54, 57, 63, 1),
       appBar: AppBar(
         title: Text("Create New account"),
-        backgroundColor: Color.fromRGBO(49, 110, 125, 1),
+        backgroundColor: Color.fromRGBO(240, 126, 32, 1),
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -140,7 +140,7 @@ class _SignUpState extends State<SignUp> {
                       child: Text(
                         "Sign In",
                         style: TextStyle(
-                            color: Colors.white,
+                            color: Color.fromRGBO(240, 126, 32, 1),
                             decoration: TextDecoration.underline),
                       ),
                     )
