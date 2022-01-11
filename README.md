@@ -1,1 +1,2 @@
-# chat_app
+# minGram
+# ChatApp + Bloging
